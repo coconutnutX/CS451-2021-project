@@ -53,4 +53,14 @@ public class Host {
         return port;
     }
 
+    // --------------------------------------- ADD -------------------------------------------
+
+    public void printHostInfo() {
+        System.out.println("Printing host info:");
+        System.out.println("My ID: " + id);
+        System.out.println("Human-readable IP: " + ip);
+        System.out.println("Human-readable Port: " + port);
+        System.out.println();
+    }
+
 }

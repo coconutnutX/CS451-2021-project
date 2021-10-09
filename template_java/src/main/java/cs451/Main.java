@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.util.HashMap;
+
+import cs451.PerfectLinks.LinkClient;
+import cs451.PerfectLinks.LinkServer;
 
 public class Main {
 
@@ -56,7 +60,47 @@ public class Main {
 
         System.out.println("Doing some initialization\n");
 
+        // store host info in HashMap
+        HashMap<Integer, Host> hostMap = new HashMap<Integer, Host>();
+        for (Host host: parser.hosts()) {
+            hostMap.put(host.getId(), host);
+        }
+
+        // get current socket info
+        int myId = parser.myId();
+        Host myHost = hostMap.get(myId);
+
+        // listen to port
+        Thread linkServer = new LinkServer(parser.myId(), myHost);
+        linkServer.start();
+
         System.out.println("Broadcasting and delivering messages...\n");
+
+        // Sleep 10s, wait for other process to start listening
+        Thread.sleep(10 * 1000);
+
+        // send messages
+        LinkClient linkClient = new LinkClient();
+
+        for(int[] pair : parser.getMessageConfigList()){
+            // m defines how many messages each process should send.
+            // i is the index of the process that should receive the messages.
+            int m = pair[0];
+            int i = pair[1];
+            System.out.println("m=" + m + " i=" + i);
+
+            if(i == myId){
+                continue;
+            }
+
+            // TODO : Does the client send each message using a new socket?
+
+            Host desHost = hostMap.get(i);
+            for(int j = 0; j < m; j++){
+                String message = "TEST MESSAGE FROM ID:" + myId + " SEQ:" + (j+1);
+                linkClient.sendMessage(desHost.getIp(), desHost.getPort(), message);
+            }
+        }
 
         // After a process finishes broadcasting,
         // it waits forever for the delivery of messages.
