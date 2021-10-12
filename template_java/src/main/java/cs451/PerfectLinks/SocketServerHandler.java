@@ -3,12 +3,12 @@ package cs451.PerfectLinks;
 import java.net.*;
 import java.io.*;
 
-public class LinkServerHandler extends Thread{
+public class SocketServerHandler extends Thread{
 
     private Socket client;
     private DataInputStream in;
 
-    public LinkServerHandler(Socket client){
+    public SocketServerHandler(Socket client){
         this.client = client;
 
         try {

@@ -8,9 +8,9 @@ import java.util.concurrent.ExecutorService;
 import java.net.*;
 import java.io.*;
 
-import cs451.PerfectLinks.LinkServerHandler;
+import cs451.PerfectLinks.SocketServerHandler;
 
-public class LinkServer extends Thread{
+public class SocketServer extends Thread{
 
     private int myId;
     private Host myHost;
@@ -18,7 +18,7 @@ public class LinkServer extends Thread{
     private ServerSocket serverSocket;
     private ExecutorService executor;
 
-    public LinkServer(int myId, Host myHost){
+    public SocketServer(int myId, Host myHost){
         this.myId = myId;
         this.myHost = myHost;
 
@@ -44,7 +44,7 @@ public class LinkServer extends Thread{
                 client = serverSocket.accept();
 
                 // use thread pool to handle client message
-                executor.execute(new LinkServerHandler(client));
+                executor.execute(new SocketServerHandler(client));
             }
         }
         catch( IOException e ) {

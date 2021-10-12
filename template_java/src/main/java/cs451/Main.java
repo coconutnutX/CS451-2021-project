@@ -6,8 +6,8 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.util.HashMap;
 
-import cs451.PerfectLinks.LinkClient;
-import cs451.PerfectLinks.LinkServer;
+import cs451.PerfectLinks.SocketClient;
+import cs451.PerfectLinks.SocketServer;
 
 public class Main {
 
@@ -71,8 +71,8 @@ public class Main {
         Host myHost = hostMap.get(myId);
 
         // listen to port
-        Thread linkServer = new LinkServer(parser.myId(), myHost);
-        linkServer.start();
+        Thread socketServer = new SocketServer(parser.myId(), myHost);
+        socketServer.start();
 
         System.out.println("Broadcasting and delivering messages...\n");
 
@@ -80,7 +80,7 @@ public class Main {
         Thread.sleep(10 * 1000);
 
         // send messages
-        LinkClient linkClient = new LinkClient();
+        SocketClient socketClient = new SocketClient();
 
         for(int[] pair : parser.getMessageConfigList()){
             // m defines how many messages each process should send.
@@ -98,7 +98,7 @@ public class Main {
             Host desHost = hostMap.get(i);
             for(int j = 0; j < m; j++){
                 String message = "TEST MESSAGE FROM ID:" + myId + " SEQ:" + (j+1);
-                linkClient.sendMessage(desHost.getIp(), desHost.getPort(), message);
+                socketClient.sendMessage(desHost.getIp(), desHost.getPort(), message);
             }
         }
 

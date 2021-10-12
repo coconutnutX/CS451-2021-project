@@ -3,9 +3,9 @@ package cs451.PerfectLinks;
 import java.net.*;
 import java.io.*;
 
-public class LinkClient {
+public class SocketClient {
 
-    public LinkClient(){
+    public SocketClient(){
     }
 
     /***
