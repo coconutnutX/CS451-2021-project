@@ -15,7 +15,7 @@ public class SocketServer extends Thread{
     private int myId;
     private Host myHost;
 
-    private ServerSocket serverSocket;
+    private DatagramSocket datagramSocket;
     private ExecutorService executor;
 
     public SocketServer(int myId, Host myHost){
@@ -28,8 +28,7 @@ public class SocketServer extends Thread{
 
         // init ServerSocket
         try {
-            serverSocket = new ServerSocket(myHost.getPort());
-            serverSocket.setSoTimeout(10000);
+            datagramSocket = new DatagramSocket(myHost.getPort());
         }
         catch( IOException e ) {
             e.printStackTrace();
@@ -38,17 +37,22 @@ public class SocketServer extends Thread{
 
     public void run(){
         try {
-            Socket client = null;
             while(true){
-                // wait for client
-                client = serverSocket.accept();
+                byte[] receiveData = new byte[1024];
+                DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 
-                // use thread pool to handle client message
-                executor.execute(new SocketServerHandler(client));
+                // wait for client
+                datagramSocket.receive(receivePacket);
+
+                // use thread pool to handle client socket packet
+                executor.execute(new SocketServerHandler(receivePacket));
             }
         }
-        catch( IOException e ) {
+        catch( Exception e ) {
             e.printStackTrace();
+        }
+        finally {
+            datagramSocket.close();
         }
     }
 

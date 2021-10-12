@@ -76,8 +76,8 @@ public class Main {
 
         System.out.println("Broadcasting and delivering messages...\n");
 
-        // Sleep 10s, wait for other process to start listening
-        Thread.sleep(10 * 1000);
+        // Sleep 5s, wait for other process to start listening
+        Thread.sleep(5 * 1000);
 
         // send messages
         SocketClient socketClient = new SocketClient();

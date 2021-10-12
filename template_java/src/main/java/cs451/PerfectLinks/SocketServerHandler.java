@@ -5,39 +5,21 @@ import java.io.*;
 
 public class SocketServerHandler extends Thread{
 
-    private Socket client;
-    private DataInputStream in;
+    private DatagramPacket datagramPacket;
 
-    public SocketServerHandler(Socket client){
-        this.client = client;
-
-        try {
-            in = new DataInputStream(client.getInputStream());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        System.out.println("Handler thread created, client address: " + client.getRemoteSocketAddress() + "\n");
+    public SocketServerHandler(DatagramPacket datagramPacket){
+        this.datagramPacket = datagramPacket;
     }
 
-    /**
-     * delivery of application message, using the format dsender seq_nr,
-     * where sender is the number of the process that broadcast the message
-     * and seq_nr is the sequence number of the message (as numbered by the broadcasting process)
-     *
-     * process i logs the messages using the format d sender seq_nr
-     */
     public void run() {
         try {
-            String msg = in.readUTF();
+            String msg = new String(datagramPacket.getData());
             System.out.println("Message from client: " + msg);
 
             // TODO handle message and write to file
 
-            // close server
-            client.close();
-        }catch(SocketTimeoutException s) {
-            System.out.println("Socket time out.\n");
-        }catch(IOException e) {
+        }
+        catch (Exception e) {
             e.printStackTrace();
         }
     }
