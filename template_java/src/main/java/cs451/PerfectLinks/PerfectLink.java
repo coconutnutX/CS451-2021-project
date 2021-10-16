@@ -1,5 +1,8 @@
 package main.java.cs451.PerfectLinks;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -36,15 +39,20 @@ public class PerfectLink {
 
     private HashMap<Integer, HashSet<Integer>> deliverMap; // messages delivered
 
+    private StringBuffer logBuffer; // store log, write to file when terminate
+    private String outputPath;
+
     public static PerfectLink getInstance(){
         return instance;
     }
 
-    public void init(int myId, Host myHost) {
+    public void init(int myId, Host myHost, String outputPath) {
         this.myId = myId;
         this.myHost = myHost;
         this.currentPSEQ = 0;
         this.deliverMap = new HashMap<Integer, HashSet<Integer>>();
+        this.logBuffer = new StringBuffer();
+        this.outputPath = outputPath;
         this.socketServer = new SocketServer(myId, myHost);
 
         // start listen to port
@@ -77,12 +85,29 @@ public class PerfectLink {
         if(!deliverMap.get(senderId).contains(PSEQ)){
             deliverMap.get(senderId).add(PSEQ);
             // delivered a message with sequence number from process number
-            System.out.println("======d " + perfectLinkMessage.getSEQ() + " " + perfectLinkMessage.getSender().getId());
+            String logStr = "d " + perfectLinkMessage.getSEQ() + " " + perfectLinkMessage.getSender().getId() + "\n";
+            System.out.println("======" + logStr);
+            addLogBuffer(logStr);
         }
     }
 
     public int getAndIncreasePSEQ(){
        return currentPSEQ++;
+    }
+
+    public void addLogBuffer(String str){
+        logBuffer.append(str);
+    }
+
+    public void writeLogFile(){
+        try {
+            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(outputPath));
+            System.out.println(logBuffer.toString());
+            bufferedWriter.write(logBuffer.toString());
+            bufferedWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }

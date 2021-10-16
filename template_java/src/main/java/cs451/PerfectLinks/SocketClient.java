@@ -25,7 +25,9 @@ public class SocketClient {
 
             System.out.println("Send to "+receiver.getId()+": ["+perfectLinkMessage.getMessage()+"]");
             // broadcast a message with sequence number 3
-            System.out.println("======b " + perfectLinkMessage.getSEQ());
+            String logStr = "b " + perfectLinkMessage.getSEQ() + "\n";
+            System.out.println("======" + logStr);
+            PerfectLink.getInstance().addLogBuffer(logStr);
         }
         catch(Exception e) {
             e.printStackTrace();

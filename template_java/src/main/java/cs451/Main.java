@@ -18,6 +18,8 @@ public class Main {
 
         //write/flush output file if necessary
         System.out.println("Writing output.");
+
+        PerfectLink.getInstance().writeLogFile();
     }
 
     private static void initSignalHandlers() {
@@ -69,7 +71,7 @@ public class Main {
 
         // init PerfectLinks (Singleton)
         PerfectLink perfectLink = PerfectLink.getInstance();
-        perfectLink.init(myId, myHost);
+        perfectLink.init(myId, myHost, parser.output());
 
         System.out.println("Broadcasting and delivering messages...\n");
 
