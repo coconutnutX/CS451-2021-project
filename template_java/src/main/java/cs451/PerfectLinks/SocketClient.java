@@ -23,10 +23,10 @@ public class SocketClient {
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address);
             datagramSocket.send(sendPacket);
 
-            System.out.println("Send to "+receiver.getId()+": ["+perfectLinkMessage.getMessage()+"]");
+            // System.out.println("Send to "+receiver.getId()+": ["+perfectLinkMessage.getMessage()+"]");
             // broadcast a message with sequence number 3
             String logStr = "b " + perfectLinkMessage.getSEQ() + "\n";
-            System.out.println("======" + logStr);
+            // System.out.println("======" + logStr);
             PerfectLink.getInstance().addLogBuffer(logStr);
         }
         catch(Exception e) {
@@ -51,7 +51,7 @@ public class SocketClient {
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address);
             datagramSocket.send(sendPacket);
 
-            System.out.println("Send ACK to "+host.getId()+": ["+perfectLinkMessage.getAckMessage()+"]");
+            // System.out.println("Send ACK to "+host.getId()+": ["+perfectLinkMessage.getAckMessage()+"]");
         }
         catch(Exception e) {
             e.printStackTrace();

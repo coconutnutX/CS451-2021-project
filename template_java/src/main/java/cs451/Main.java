@@ -94,6 +94,8 @@ public class Main {
                 PerfectLinkMessage perfectLinkMessage = new PerfectLinkMessage(desHost, myHost, SEQ, perfectLink.getAndIncreasePSEQ());
                 perfectLink.request(perfectLinkMessage);
             }
+
+            // TODO deliver message broadcast by current process?
         }
 
         // After a process finishes broadcasting,

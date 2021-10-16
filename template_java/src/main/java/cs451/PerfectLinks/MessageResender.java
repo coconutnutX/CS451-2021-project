@@ -12,13 +12,15 @@ public class MessageResender extends Thread{
     public void run(){
         try {
             while(true){
+                // deep copy map from messageManager, avoid java.util.ConcurrentModificationException
+                HashMap<Integer, PerfectLinkMessage> copyMap = new HashMap<>();
+                copyMap.putAll(messageManager.getMessageSendMap());
+
                 // check for sockets without ACK
-                for(PerfectLinkMessage perfectLinkMessage: messageManager.getMessageSendMap().values()){
+                for(PerfectLinkMessage perfectLinkMessage: copyMap.values()){
                     // resend
                     PerfectLink.getInstance().request(perfectLinkMessage);
                 }
-
-                // TODO what if message removed while checking?
 
                 // sleep
                 Thread.sleep( Constants.RESEND_PERIOD * 1000);

@@ -19,7 +19,7 @@ public class SocketServerHandler extends Thread{
     public void run() {
         try {
             String messageString = new String(datagramPacket.getData());
-            System.out.println("Receive: [" + messageString+"]");
+            // System.out.println("Receive: [" + messageString+"]");
 
             // parse message
             PerfectLinkMessage perfectLinkMessage = new PerfectLinkMessage(messageString);
