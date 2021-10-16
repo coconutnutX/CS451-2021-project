@@ -7,7 +7,7 @@ import cs451.Host;
 
 /**
  * Manages all host info
- * initiated when process starts
+ * Initiated when process starts
  * Singleton
  */
 public class HostManager {

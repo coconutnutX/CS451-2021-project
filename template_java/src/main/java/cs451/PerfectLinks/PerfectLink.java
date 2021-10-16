@@ -26,15 +26,12 @@ public class PerfectLink {
     private Host myHost;       // host of current process
     private int currentPSEQ;   // keep track of PSEQ of this process, should be unique in all processes
 
-    private HashMap<Integer, PerfectLinkMessage> msgSendMap; // messages sent but have not yet received ACK
-
     private Thread socketServer;   // Another thread to listen to sockets
 
     public PerfectLink(int myId, Host myHost) {
         this.myId = myId;
         this.myHost = myHost;
         this.currentPSEQ = 0;
-        this.msgSendMap = new HashMap<Integer, PerfectLinkMessage>();
         this.socketServer = new SocketServer(myId, myHost);
 
         // start listen to port
@@ -50,7 +47,7 @@ public class PerfectLink {
         socketClient.sendMessage(perfectLinkMessage);
 
         // add perfectLinksMessage to msgSendMap
-        msgSendMap.put(perfectLinkMessage.getPSEQ(), perfectLinkMessage);
+        MessageManager.getInstance().addMessage(perfectLinkMessage);
     }
 
     public void indication(){

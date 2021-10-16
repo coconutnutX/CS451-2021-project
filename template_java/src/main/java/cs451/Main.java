@@ -1,6 +1,7 @@
 package cs451;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 
 import cs451.PerfectLinks.SocketClient;
@@ -71,6 +72,8 @@ public class Main {
         PerfectLink perfectLink = new PerfectLink(myId, myHost);
 
         System.out.println("Broadcasting and delivering messages...\n");
+
+        System.out.println("Defualt charset: "+ Charset.defaultCharset());
 
         // Sleep 5s, wait for other process to start listening
         Thread.sleep(5 * 1000);

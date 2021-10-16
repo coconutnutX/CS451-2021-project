@@ -2,9 +2,15 @@ package main.java.cs451.PerfectLinks;
 
 import cs451.Host;
 
+/**
+ * message format: 0 senderID SEQ PSEQ
+ * ACK format:     1 PSEQ
+ */
 public class PerfectLinkMessage {
 
     private static final String SPACES_REGEX = "\\s+";
+
+    public boolean isACK;
 
     private int SEQ;
     private int PSEQ;
@@ -16,13 +22,14 @@ public class PerfectLinkMessage {
 
     // construct from sender
     public PerfectLinkMessage(Host receiver, Host sender, int SEQ, int PSEQ){
+        this.isACK = false;
         this.receiver = receiver;
         this.sender = sender;
         this.SEQ = SEQ;
         this.PSEQ = PSEQ;
 
         // concatenate message string
-        this.message = sender.getId() + " " + SEQ + " " + PSEQ;
+        this.message = "0 " + sender.getId() + " " + SEQ + " " + PSEQ;
     }
 
     // construct from receiver
@@ -31,11 +38,28 @@ public class PerfectLinkMessage {
 
         // parse message string
         String[] splits = message.split(SPACES_REGEX);
-        int senderId = Integer.parseInt(splits[0]);
-        // find host info
-        this.sender = HostManager.getInstance().getHostById(senderId);
-        this.SEQ = Integer.parseInt(splits[1]);
-        this.PSEQ = Integer.parseInt(splits[2]);
+
+        if(Integer.parseInt(splits[0]) == 0){
+            // when receive message
+            this.isACK = false;
+
+            int senderId = Integer.parseInt(splits[1]);
+            // find host info
+            this.sender = HostManager.getInstance().getHostById(senderId);
+            this.SEQ = Integer.parseInt(splits[2]);
+            this.PSEQ = Integer.parseInt(splits[3].trim()); // have to trim at the end to avoid parsing error
+        }else{
+            // when receive ACK
+            this.isACK = true;
+
+            this.PSEQ = Integer.parseInt(splits[1].trim());
+        }
+
+    }
+
+    // construct ACK message
+    public String getAckMessage(){
+        return "1 " + PSEQ;
     }
 
     public void setSEQ(int SEQ){
@@ -54,20 +78,16 @@ public class PerfectLinkMessage {
         return PSEQ;
     }
 
-    public int getDesId(){
-        return receiver.getId();
-    }
-
-    public String getDesIp(){
-        return receiver.getIp();
-    }
-
-    public int getDesPort(){
-        return receiver.getPort();
-    }
-
     public String getMessage(){
         return message;
+    }
+
+    public Host getReceiver(){
+        return receiver;
+    }
+
+    public Host getSender(){
+        return sender;
     }
 
 }
