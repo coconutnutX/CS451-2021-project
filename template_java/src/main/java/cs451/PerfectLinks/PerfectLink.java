@@ -35,12 +35,13 @@ public class PerfectLink {
     private Host myHost;       // host of current process
     private int currentPSEQ;   // keep track of PSEQ of this process, should be unique in all processes
 
-    private Thread socketServer;   // another thread to listen to sockets
+    private Thread socketServer;    // thread to listen to sockets
+    private Thread messageResender; // thread to resend sockets periodically
 
     private HashMap<Integer, HashSet<Integer>> deliverMap; // messages delivered
 
     private StringBuffer logBuffer; // store log, write to file when terminate
-    private String outputPath;
+    private String outputPath;      // output log file path
 
     public static PerfectLink getInstance(){
         return instance;
@@ -54,9 +55,13 @@ public class PerfectLink {
         this.logBuffer = new StringBuffer();
         this.outputPath = outputPath;
         this.socketServer = new SocketServer(myId, myHost);
+        this.messageResender = new MessageResender();
 
         // start listen to port
         socketServer.start();
+
+        // check periodically to resend messages
+        messageResender.start();
 
         System.out.println("PerfectLink initialized\n");
     }
@@ -85,7 +90,7 @@ public class PerfectLink {
         if(!deliverMap.get(senderId).contains(PSEQ)){
             deliverMap.get(senderId).add(PSEQ);
             // delivered a message with sequence number from process number
-            String logStr = "d " + perfectLinkMessage.getSEQ() + " " + perfectLinkMessage.getSender().getId() + "\n";
+            String logStr = "d " + perfectLinkMessage.getSender().getId() + " " + perfectLinkMessage.getSEQ() + "\n";
             System.out.println("======" + logStr);
             addLogBuffer(logStr);
         }

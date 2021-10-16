@@ -28,5 +28,7 @@ public class MessageManager {
         messageSendMap.remove(PSEQ);
     }
 
-    // TODO check periodically
+    public HashMap<Integer, PerfectLinkMessage> getMessageSendMap(){
+        return messageSendMap;
+    }
 }
