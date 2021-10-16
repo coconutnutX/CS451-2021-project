@@ -1,21 +1,26 @@
 package cs451.PerfectLinks;
 
+import main.java.cs451.PerfectLinks.PerfectLink;
+import main.java.cs451.PerfectLinks.PerfectLinkMessage;
+
 import java.net.*;
-import java.io.*;
 
 public class SocketClient {
 
     private static DatagramSocket datagramSocket;
 
-    public void sendMessage(String desIp, int desPort, String message){
-        System.out.println("Send message to port:" + desPort);
-
+    public void sendMessage(PerfectLinkMessage perfectLinkMessage){
         try {
-            datagramSocket = new DatagramSocket();
-            InetSocketAddress address = new InetSocketAddress(desIp, desPort);
-            byte[] sendData = (message).getBytes();
+            // init
+            DatagramSocket datagramSocket = new DatagramSocket();
+            InetSocketAddress address = new InetSocketAddress(perfectLinkMessage.getDesIp(), perfectLinkMessage.getDesPort());
+            byte[] sendData = (perfectLinkMessage.getMessage()).getBytes();
+
+            // send
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address);
             datagramSocket.send(sendPacket);
+
+            System.out.println("Send to "+perfectLinkMessage.getDesId()+": ["+perfectLinkMessage.getMessage()+"]");
         }
         catch(Exception e) {
             e.printStackTrace();

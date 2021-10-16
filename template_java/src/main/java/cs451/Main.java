@@ -1,13 +1,14 @@
 package cs451;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.Socket;
 import java.util.HashMap;
 
 import cs451.PerfectLinks.SocketClient;
 import cs451.PerfectLinks.SocketServer;
+import cs451.Host;
+import main.java.cs451.PerfectLinks.HostManager;
+import main.java.cs451.PerfectLinks.PerfectLink;
+import main.java.cs451.PerfectLinks.PerfectLinkMessage;
 
 public class Main {
 
@@ -34,7 +35,6 @@ public class Main {
 
         initSignalHandlers();
 
-        // example
         long pid = ProcessHandle.current().pid();
         System.out.println("My PID: " + pid + "\n");
         System.out.println("From a new terminal type `kill -SIGINT " + pid + "` or `kill -SIGTERM " + pid + "` to stop processing packets\n");
@@ -60,27 +60,20 @@ public class Main {
 
         System.out.println("Doing some initialization\n");
 
-        // store host info in HashMap
-        HashMap<Integer, Host> hostMap = new HashMap<Integer, Host>();
-        for (Host host: parser.hosts()) {
-            hostMap.put(host.getId(), host);
-        }
-
-        // get current socket info
+        // get current process host info
         int myId = parser.myId();
-        Host myHost = hostMap.get(myId);
 
-        // listen to port
-        Thread socketServer = new SocketServer(parser.myId(), myHost);
-        socketServer.start();
+        // init HostManager (Singleton)
+        HostManager hostManager = HostManager.getInstance();
+        Host myHost = hostManager.init(parser.hosts(), myId);
+
+        // init PerfectLinks
+        PerfectLink perfectLink = new PerfectLink(myId, myHost);
 
         System.out.println("Broadcasting and delivering messages...\n");
 
         // Sleep 5s, wait for other process to start listening
         Thread.sleep(5 * 1000);
-
-        // send messages
-        SocketClient socketClient = new SocketClient();
 
         for(int[] pair : parser.getMessageConfigList()){
             // m defines how many messages each process should send.
@@ -93,12 +86,10 @@ public class Main {
                 continue;
             }
 
-            // TODO : Does the client send each message using a new socket?
-
-            Host desHost = hostMap.get(i);
-            for(int j = 0; j < m; j++){
-                String message = "TEST MESSAGE FROM ID:" + myId + " SEQ:" + (j+1);
-                socketClient.sendMessage(desHost.getIp(), desHost.getPort(), message);
+            Host desHost = hostManager.getInstance().getHostById(i);
+            for(int SEQ = 0; SEQ < m; SEQ++){
+                PerfectLinkMessage perfectLinkMessage = new PerfectLinkMessage(desHost, myHost, SEQ, perfectLink.getAndIncreasePSEQ());
+                perfectLink.request(perfectLinkMessage);
             }
         }
 

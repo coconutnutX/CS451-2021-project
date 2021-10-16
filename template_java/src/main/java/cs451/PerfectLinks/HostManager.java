@@ -21,13 +21,25 @@ public class HostManager {
         return instance;
     }
 
-    public void init(List<Host> hosts){
+    // store all other hosts in map, and return current host
+    public Host init(List<Host> hosts, int myId){
         hostMap = new HashMap<Integer, Host>();
+
+        // find host of current process
+        Host myHost = null;
 
         // store host info in HashMap
         for (Host host: hosts) {
-            hostMap.put(host.getId(), host);
+            if(host.getId() != myId){
+                hostMap.put(host.getId(), host);
+            }else{
+                myHost = host;
+            }
         }
+
+        System.out.println("HostManager initialized\n");
+
+        return myHost;
     }
 
     public Host getHostById(int id){

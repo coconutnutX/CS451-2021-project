@@ -2,7 +2,6 @@ package cs451.PerfectLinks;
 
 import cs451.Host;
 
-import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.net.*;
@@ -22,11 +21,9 @@ public class SocketServer extends Thread{
         this.myId = myId;
         this.myHost = myHost;
 
-        executor = Executors.newFixedThreadPool(2);
+        // handler thread pool
+        executor = Executors.newFixedThreadPool(4);
 
-        System.out.println("init server`~~~~~~~~~~~~`");
-
-        // init ServerSocket
         try {
             datagramSocket = new DatagramSocket(myHost.getPort());
         }
