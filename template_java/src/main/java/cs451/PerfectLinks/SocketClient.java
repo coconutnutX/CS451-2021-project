@@ -24,6 +24,8 @@ public class SocketClient {
             datagramSocket.send(sendPacket);
 
             System.out.println("Send to "+receiver.getId()+": ["+perfectLinkMessage.getMessage()+"]");
+            // broadcast a message with sequence number 3
+            System.out.println("======b " + perfectLinkMessage.getSEQ());
         }
         catch(Exception e) {
             e.printStackTrace();

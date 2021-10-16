@@ -27,4 +27,6 @@ public class MessageManager {
     public void removeMessage(int PSEQ){
         messageSendMap.remove(PSEQ);
     }
+
+    // TODO check periodically
 }

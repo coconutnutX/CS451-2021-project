@@ -1,7 +1,6 @@
 package cs451;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 
 import cs451.PerfectLinks.SocketClient;
@@ -68,22 +67,21 @@ public class Main {
         HostManager hostManager = HostManager.getInstance();
         Host myHost = hostManager.init(parser.hosts(), myId);
 
-        // init PerfectLinks
-        PerfectLink perfectLink = new PerfectLink(myId, myHost);
+        // init PerfectLinks (Singleton)
+        PerfectLink perfectLink = PerfectLink.getInstance();
+        perfectLink.init(myId, myHost);
 
         System.out.println("Broadcasting and delivering messages...\n");
-
-        System.out.println("Defualt charset: "+ Charset.defaultCharset());
 
         // Sleep 5s, wait for other process to start listening
         Thread.sleep(5 * 1000);
 
+        // send messages according to config
         for(int[] pair : parser.getMessageConfigList()){
             // m defines how many messages each process should send.
             // i is the index of the process that should receive the messages.
             int m = pair[0];
             int i = pair[1];
-            System.out.println("m=" + m + " i=" + i);
 
             if(i == myId){
                 continue;

@@ -1,6 +1,7 @@
 package main.java.cs451.PerfectLinks;
 
 import java.util.HashMap;
+import java.util.HashSet;
 
 import cs451.Host;
 import cs451.PerfectLinks.SocketServer;
@@ -19,19 +20,31 @@ import cs451.PerfectLinks.SocketClient;
  * PL2: No duplication: No message is delivered by a process more than once.
  * PL3: No creation: If some process q delivers a message m with sender p, then m
  * was previously sent to q by process p.
+ *
+ * Singleton
  */
 public class PerfectLink {
+
+    private static PerfectLink instance = new PerfectLink();
+    private PerfectLink(){}
 
     private int myId;          // id of current process
     private Host myHost;       // host of current process
     private int currentPSEQ;   // keep track of PSEQ of this process, should be unique in all processes
 
-    private Thread socketServer;   // Another thread to listen to sockets
+    private Thread socketServer;   // another thread to listen to sockets
 
-    public PerfectLink(int myId, Host myHost) {
+    private HashMap<Integer, HashSet<Integer>> deliverMap; // messages delivered
+
+    public static PerfectLink getInstance(){
+        return instance;
+    }
+
+    public void init(int myId, Host myHost) {
         this.myId = myId;
         this.myHost = myHost;
         this.currentPSEQ = 0;
+        this.deliverMap = new HashMap<Integer, HashSet<Integer>>();
         this.socketServer = new SocketServer(myId, myHost);
 
         // start listen to port
@@ -50,8 +63,22 @@ public class PerfectLink {
         MessageManager.getInstance().addMessage(perfectLinkMessage);
     }
 
-    public void indication(){
+    // deliver message
+    public void indication(PerfectLinkMessage perfectLinkMessage){
+        int senderId = perfectLinkMessage.getSender().getId();
+        int PSEQ = perfectLinkMessage.getPSEQ();
 
+        // init set if don't exist
+        if(!deliverMap.containsKey(senderId)){
+            deliverMap.put(senderId, new HashSet<Integer>());
+        }
+
+        // deliver if not already delivered
+        if(!deliverMap.get(senderId).contains(PSEQ)){
+            deliverMap.get(senderId).add(PSEQ);
+            // delivered a message with sequence number from process number
+            System.out.println("======d " + perfectLinkMessage.getSEQ() + " " + perfectLinkMessage.getSender().getId());
+        }
     }
 
     public int getAndIncreasePSEQ(){

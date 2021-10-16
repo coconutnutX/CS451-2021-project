@@ -1,6 +1,7 @@
 package cs451.PerfectLinks;
 
 import main.java.cs451.PerfectLinks.MessageManager;
+import main.java.cs451.PerfectLinks.PerfectLink;
 import main.java.cs451.PerfectLinks.PerfectLinkMessage;
 import cs451.PerfectLinks.SocketClient;
 
@@ -28,7 +29,8 @@ public class SocketServerHandler extends Thread{
                 SocketClient socketClient = new SocketClient();
                 socketClient.sendACK(perfectLinkMessage);
 
-                // TODO deliver
+                // call deliver
+                PerfectLink.getInstance().indication(perfectLinkMessage);
             }else{ // is ACK
                 // remove from track
                 MessageManager.getInstance().removeMessage(perfectLinkMessage.getPSEQ());
