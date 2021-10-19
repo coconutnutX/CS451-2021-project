@@ -28,7 +28,7 @@ public class SocketClient {
             if(!perfectLinkMessage.isResend){
                 String logStr = "b " + perfectLinkMessage.getSEQ() + "\n";
                 PerfectLink.getInstance().addLogBuffer(logStr);
-                 System.out.println(logStr);
+                 System.out.print(logStr);
             }
         }
         catch(Exception e) {

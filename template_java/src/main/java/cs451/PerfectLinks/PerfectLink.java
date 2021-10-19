@@ -67,20 +67,22 @@ public class PerfectLink {
     }
 
     // request to send message perfectLinkMessage
-    public void request(PerfectLinkMessage perfectLinkMessage){
+    public synchronized void request(PerfectLinkMessage perfectLinkMessage){
         // send message
         SocketClient socketClient = new SocketClient();
         socketClient.sendMessage(perfectLinkMessage);
 
-        // mark resend
-        perfectLinkMessage.isResend = true;
+        // mark resend, only change once when first send
+        if(!perfectLinkMessage.isResend){
+            perfectLinkMessage.isResend = true;
+        }
 
         // add perfectLinksMessage to msgSendMap
         MessageManager.getInstance().addMessage(perfectLinkMessage);
     }
 
     // deliver message
-    public void indication(PerfectLinkMessage perfectLinkMessage){
+    public synchronized void indication(PerfectLinkMessage perfectLinkMessage){
         int senderId = perfectLinkMessage.getSender().getId();
         int PSEQ = perfectLinkMessage.getPSEQ();
 
@@ -94,7 +96,7 @@ public class PerfectLink {
             deliverMap.get(senderId).add(PSEQ);
             // delivered a message with sequence number from process number
             String logStr = "d " + perfectLinkMessage.getSender().getId() + " " + perfectLinkMessage.getSEQ() + "\n";
-            System.out.println(logStr);
+            System.out.print(logStr);
             addLogBuffer(logStr);
         }
     }
