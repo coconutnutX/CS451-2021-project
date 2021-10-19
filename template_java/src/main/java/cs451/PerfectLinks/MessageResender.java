@@ -23,7 +23,7 @@ public class MessageResender extends Thread{
                 }
 
                 // sleep
-                Thread.sleep( Constants.RESEND_PERIOD * 1000);
+                Thread.sleep( Constants.RESEND_PERIOD);
             }
         } catch (InterruptedException e) {
             e.printStackTrace();

@@ -96,7 +96,7 @@ public class PerfectLink {
             deliverMap.get(senderId).add(PSEQ);
             // delivered a message with sequence number from process number
             String logStr = "d " + perfectLinkMessage.getSender().getId() + " " + perfectLinkMessage.getSEQ() + "\n";
-            System.out.print(logStr);
+            // System.out.print(logStr);
             addLogBuffer(logStr);
         }
     }

@@ -18,6 +18,6 @@ public class Constants {
     // indexes for config
     public static final int CONFIG_VALUE = 6;
 
-    // resend check period (s)
-    public static final int RESEND_PERIOD = 1;
+    // resend check period (ms)
+    public static final int RESEND_PERIOD = 500;
 }
