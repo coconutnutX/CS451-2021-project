@@ -72,6 +72,9 @@ public class PerfectLink {
         SocketClient socketClient = new SocketClient();
         socketClient.sendMessage(perfectLinkMessage);
 
+        // mark resend
+        perfectLinkMessage.isResend = true;
+
         // add perfectLinksMessage to msgSendMap
         MessageManager.getInstance().addMessage(perfectLinkMessage);
     }
@@ -91,7 +94,7 @@ public class PerfectLink {
             deliverMap.get(senderId).add(PSEQ);
             // delivered a message with sequence number from process number
             String logStr = "d " + perfectLinkMessage.getSender().getId() + " " + perfectLinkMessage.getSEQ() + "\n";
-            // System.out.println("======" + logStr);
+            System.out.println(logStr);
             addLogBuffer(logStr);
         }
     }

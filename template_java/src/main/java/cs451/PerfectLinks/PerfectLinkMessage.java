@@ -11,6 +11,7 @@ public class PerfectLinkMessage {
     private static final String SPACES_REGEX = "\\s+";
 
     public boolean isACK;
+    public boolean isResend;
 
     private int SEQ;
     private int PSEQ;
@@ -23,6 +24,7 @@ public class PerfectLinkMessage {
     // construct from sender
     public PerfectLinkMessage(Host receiver, Host sender, int SEQ, int PSEQ){
         this.isACK = false;
+        this.isResend = false;
         this.receiver = receiver;
         this.sender = sender;
         this.SEQ = SEQ;

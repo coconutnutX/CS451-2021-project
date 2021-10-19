@@ -75,8 +75,8 @@ public class Main {
 
         System.out.println("Broadcasting and delivering messages...\n");
 
-        // Sleep 5s, wait for other process to start listening
-        Thread.sleep(5 * 1000);
+        // Sleep 3s, wait for other process to start listening
+        Thread.sleep(3 * 1000);
 
         // send messages according to config
         for(int[] pair : parser.getMessageConfigList()){
