@@ -1,4 +1,4 @@
-package main.java.cs451.PerfectLinks;
+package main.java.cs451.pl;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -31,9 +31,9 @@ public class PerfectLink {
     private static PerfectLink instance = new PerfectLink();
     private PerfectLink(){}
 
-    private int myId;          // id of current process
-    private Host myHost;       // host of current process
-    private int currentPSEQ;   // keep track of PSEQ of this process, should be unique in all processes
+    private int myId;               // id of current process
+    private Host myHost;            // host of current process
+    private int currentPSEQ;        // keep track of PSEQ of this process, should be unique in all processes
 
     private Thread socketServer;    // thread to listen to sockets
     private Thread messageResender; // thread to resend sockets periodically

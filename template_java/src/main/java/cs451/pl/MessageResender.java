@@ -1,4 +1,4 @@
-package main.java.cs451.PerfectLinks;
+package main.java.cs451.pl;
 
 import cs451.Constants;
 

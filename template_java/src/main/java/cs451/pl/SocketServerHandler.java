@@ -1,12 +1,10 @@
 package cs451.PerfectLinks;
 
-import main.java.cs451.PerfectLinks.MessageManager;
-import main.java.cs451.PerfectLinks.PerfectLink;
-import main.java.cs451.PerfectLinks.PerfectLinkMessage;
-import cs451.PerfectLinks.SocketClient;
+import main.java.cs451.pl.MessageManager;
+import main.java.cs451.pl.PerfectLink;
+import main.java.cs451.pl.PerfectLinkMessage;
 
 import java.net.*;
-import java.nio.charset.Charset;
 
 public class SocketServerHandler extends Thread{
 

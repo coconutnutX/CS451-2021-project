@@ -7,9 +7,6 @@ import java.util.concurrent.ExecutorService;
 import java.net.*;
 import java.io.*;
 
-import cs451.PerfectLinks.SocketServerHandler;
-import main.java.cs451.PerfectLinks.PerfectLink;
-
 public class SocketServer extends Thread{
 
     private int myId;

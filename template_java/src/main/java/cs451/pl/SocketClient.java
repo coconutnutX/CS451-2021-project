@@ -1,11 +1,10 @@
 package cs451.PerfectLinks;
 
 import cs451.Host;
-import main.java.cs451.PerfectLinks.PerfectLink;
-import main.java.cs451.PerfectLinks.PerfectLinkMessage;
+import main.java.cs451.pl.PerfectLink;
+import main.java.cs451.pl.PerfectLinkMessage;
 
 import java.net.*;
-import java.nio.charset.Charset;
 
 public class SocketClient {
 

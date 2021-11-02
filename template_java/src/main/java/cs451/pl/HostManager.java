@@ -1,4 +1,4 @@
-package main.java.cs451.PerfectLinks;
+package main.java.cs451.pl;
 
 import java.util.HashMap;
 import java.util.List;
