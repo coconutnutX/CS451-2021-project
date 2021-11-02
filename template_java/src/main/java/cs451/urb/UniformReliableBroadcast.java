@@ -77,8 +77,8 @@ public class UniformReliableBroadcast {
         addToPending(myId, urbMessage);
 
         // log broadcast
-        String logStr = "b " + urbMessage.getSEQ() + "\n";
         if(cs451.Constants.DEBUG_OUTPUT_URB){
+            String logStr = "b " + urbMessage.getSEQ() + "\n";
             System.out.print("[urb]  "+logStr);
         }
 
@@ -105,8 +105,8 @@ public class UniformReliableBroadcast {
         // not in pending, relay
         if(!isInPending(creater.getId(), SEQ)){
             // log broadcast
-            String logStr = "b " + SEQ + "\n";
-            if(cs451.Constants.DEBUG_OUTPUT_URB){
+            if(cs451.Constants.DEBUG_OUTPUT_URB_RELAY){
+                String logStr = "b " + SEQ + "\n";
                 System.out.print("[urbr] "+logStr);
             }
 
@@ -136,8 +136,8 @@ public class UniformReliableBroadcast {
 
     public void deliver(URBMessage urbMessage){
         // log deliver
-        String logStr = "d " + urbMessage.getCreaterId() + " " + urbMessage.getSEQ() + "\n";
         if(cs451.Constants.DEBUG_OUTPUT_URB){
+            String logStr = "d " + urbMessage.getCreaterId() + " " + urbMessage.getSEQ() + "\n";
             System.out.print("[urb]  "+logStr);
         }
 

@@ -24,4 +24,5 @@ public class Constants {
     // debug output
     public static final boolean DEBUG_OUTPUT_PL = false;
     public static final boolean DEBUG_OUTPUT_URB = true;
+    public static final boolean DEBUG_OUTPUT_URB_RELAY = false;
 }
