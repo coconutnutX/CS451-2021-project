@@ -17,21 +17,23 @@ public class PerfectLinkMessage {
     private int PSEQ;
 
     private Host receiver;
+    private Host creater;
     private Host sender;
 
     private String message;
 
     // construct from sender
-    public PerfectLinkMessage(Host receiver, Host sender, int SEQ, int PSEQ){
+    public PerfectLinkMessage(Host receiver, Host creater, Host sender, int SEQ, int PSEQ){
         this.isACK = false;
         this.isResend = false;
         this.receiver = receiver;
+        this.creater = creater;
         this.sender = sender;
         this.SEQ = SEQ;
         this.PSEQ = PSEQ;
 
         // concatenate message string
-        this.message = "0 " + sender.getId() + " " + SEQ + " " + PSEQ;
+        this.message = "0 " + creater.getId() + " " + sender.getId() + " " + SEQ + " " + PSEQ;
     }
 
     // construct from receiver
@@ -45,11 +47,13 @@ public class PerfectLinkMessage {
             // when receive message
             this.isACK = false;
 
-            int senderId = Integer.parseInt(splits[1]);
+            int createrId = Integer.parseInt(splits[1]);
+            int senderId = Integer.parseInt(splits[2]);
             // find host info
+            this.creater = HostManager.getInstance().getHostById(createrId);
             this.sender = HostManager.getInstance().getHostById(senderId);
-            this.SEQ = Integer.parseInt(splits[2]);
-            this.PSEQ = Integer.parseInt(splits[3].trim()); // have to trim at the end to avoid parsing error
+            this.SEQ = Integer.parseInt(splits[3]);
+            this.PSEQ = Integer.parseInt(splits[4].trim()); // have to trim at the end to avoid parsing error
         }else{
             // when receive ACK
             this.isACK = true;
@@ -90,6 +94,14 @@ public class PerfectLinkMessage {
 
     public Host getSender(){
         return sender;
+    }
+
+    public Host getCreater(){
+        return creater;
+    }
+
+    public int getCreaterId() {
+        return creater.getId();
     }
 
 }

@@ -20,4 +20,8 @@ public class Constants {
 
     // resend check period (ms)
     public static final int RESEND_PERIOD = 500;
+
+    // debug output
+    public static final boolean DEBUG_OUTPUT_PL = false;
+    public static final boolean DEBUG_OUTPUT_URB = true;
 }

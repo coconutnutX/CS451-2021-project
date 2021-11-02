@@ -3,6 +3,7 @@ package cs451;
 import main.java.cs451.pl.HostManager;
 import main.java.cs451.pl.PerfectLink;
 import main.java.cs451.pl.PerfectLinkMessage;
+import main.java.cs451.urb.URBMessage;
 import main.java.cs451.urb.UniformReliableBroadcast;
 
 public class Main {
@@ -14,7 +15,12 @@ public class Main {
         //write/flush output file if necessary
         System.out.println("Writing output.");
 
-        PerfectLink.getInstance().writeLogFile();
+        // Perfect Links application
+        // PerfectLink.getInstance().writeLogFile();
+
+        // FIFO Broadcast application
+
+        // Localized Causal Broadcast
     }
 
     private static void initSignalHandlers() {
@@ -72,7 +78,13 @@ public class Main {
 
         System.out.println("Broadcasting and delivering messages...\n");
 
-        System.out.println(parser.getMessageConfigList1());
+        for(int m : parser.getMessageConfigList1()){
+            // m defines how many messages each process should broadcast
+            for(int i = 0; i < m; i++) {
+                URBMessage urbMessage = new URBMessage(myId, uniformReliableBroadcast.getAndIncreaseURBSEQ());
+                uniformReliableBroadcast.request(urbMessage);
+            }
+        }
 
 //        // send messages according to config
 //        for(int[] pair : parser.getMessageConfigList()){

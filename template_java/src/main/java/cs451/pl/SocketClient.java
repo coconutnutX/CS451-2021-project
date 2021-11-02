@@ -1,4 +1,4 @@
-package cs451.PerfectLinks;
+package main.java.cs451.pl;
 
 import cs451.Host;
 import main.java.cs451.pl.PerfectLink;
@@ -21,14 +21,6 @@ public class SocketClient {
             // send
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address);
             datagramSocket.send(sendPacket);
-
-            // System.out.println("Send to "+receiver.getId()+": ["+perfectLinkMessage.getMessage()+"]");
-            // broadcast a message with sequence number 3
-            if(!perfectLinkMessage.isResend){
-                String logStr = "b " + perfectLinkMessage.getSEQ() + "\n";
-                PerfectLink.getInstance().addLogBuffer(logStr);
-                // System.out.print(logStr);
-            }
         }
         catch(Exception e) {
             e.printStackTrace();
@@ -51,8 +43,6 @@ public class SocketClient {
             // send
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address);
             datagramSocket.send(sendPacket);
-
-            // System.out.println("Send ACK to "+host.getId()+": ["+perfectLinkMessage.getAckMessage()+"]");
         }
         catch(Exception e) {
             e.printStackTrace();

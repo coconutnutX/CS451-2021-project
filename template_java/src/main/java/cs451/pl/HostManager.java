@@ -2,6 +2,7 @@ package main.java.cs451.pl;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Collection;
 
 import cs451.Host;
 
@@ -21,7 +22,7 @@ public class HostManager {
         return instance;
     }
 
-    // store all other hosts in map, and return current host
+    // store all hosts in map, and return current host
     public Host init(List<Host> hosts, int myId){
         hostMap = new HashMap<Integer, Host>();
 
@@ -30,9 +31,8 @@ public class HostManager {
 
         // store host info in HashMap
         for (Host host: hosts) {
-            if(host.getId() != myId){
-                hostMap.put(host.getId(), host);
-            }else{
+            hostMap.put(host.getId(), host);
+            if(host.getId() == myId){
                 myHost = host;
             }
         }
@@ -44,6 +44,10 @@ public class HostManager {
 
     public Host getHostById(int id){
         return hostMap.get(id);
+    }
+
+    public Collection<Host> getAllHosts() {
+        return hostMap.values();
     }
 
 }

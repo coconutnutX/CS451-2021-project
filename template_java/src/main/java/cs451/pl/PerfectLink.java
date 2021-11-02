@@ -7,8 +7,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import cs451.Host;
-import cs451.PerfectLinks.SocketServer;
-import cs451.PerfectLinks.SocketClient;
+import main.java.cs451.pl.SocketServer;
+import main.java.cs451.pl.SocketClient;
+import main.java.cs451.urb.UniformReliableBroadcast;
 
 /***
  * Module:
@@ -38,7 +39,7 @@ public class PerfectLink {
     private Thread socketServer;    // thread to listen to sockets
     private Thread messageResender; // thread to resend sockets periodically
 
-    private HashMap<Integer, HashSet<Integer>> deliverMap; // messages delivered
+    private HashMap<Integer, HashSet<Integer>> deliverMap; // messages delivered, <sender ID, PSEQ>
 
     private StringBuffer logBuffer; // store log, write to file when terminate
     private String outputPath;      // output log file path
@@ -68,6 +69,15 @@ public class PerfectLink {
 
     // request to send message perfectLinkMessage
     public synchronized void request(PerfectLinkMessage perfectLinkMessage){
+        // log info
+        if(!perfectLinkMessage.isResend){
+            String logStr = "b " + perfectLinkMessage.getSEQ() + "\n";
+            // PerfectLink.getInstance().addLogBuffser(logStr);
+            if(cs451.Constants.DEBUG_OUTPUT_PL){
+                System.out.print("[pl]   "+logStr);
+            }
+        }
+
         // send message
         SocketClient socketClient = new SocketClient();
         socketClient.sendMessage(perfectLinkMessage);
@@ -93,12 +103,19 @@ public class PerfectLink {
 
         // deliver if not already delivered
         if(!deliverMap.get(senderId).contains(PSEQ)){
+
             deliverMap.get(senderId).add(PSEQ);
+
             // delivered a message with sequence number from process number
             String logStr = "d " + perfectLinkMessage.getSender().getId() + " " + perfectLinkMessage.getSEQ() + "\n";
-            // System.out.print(logStr);
-            addLogBuffer(logStr);
+            // addLogBuffer(logStr);
+            if(cs451.Constants.DEBUG_OUTPUT_PL){
+                System.out.print("[pl]   "+logStr);
+            }
+
+            UniformReliableBroadcast.getInstance().indication(perfectLinkMessage);
         }
+
     }
 
     public int getAndIncreasePSEQ(){

@@ -1,8 +1,9 @@
-package cs451.PerfectLinks;
+package main.java.cs451.pl;
 
 import main.java.cs451.pl.MessageManager;
 import main.java.cs451.pl.PerfectLink;
 import main.java.cs451.pl.PerfectLinkMessage;
+import main.java.cs451.pl.SocketClient;
 
 import java.net.*;
 
@@ -17,7 +18,6 @@ public class SocketServerHandler extends Thread{
     public void run() {
         try {
             String messageString = new String(datagramPacket.getData());
-            // System.out.println("Receive: [" + messageString+"]");
 
             // parse message
             PerfectLinkMessage perfectLinkMessage = new PerfectLinkMessage(messageString);
@@ -27,13 +27,11 @@ public class SocketServerHandler extends Thread{
                 SocketClient socketClient = new SocketClient();
                 socketClient.sendACK(perfectLinkMessage);
 
-                // call deliver
                 PerfectLink.getInstance().indication(perfectLinkMessage);
             }else{ // is ACK
                 // remove from track
                 MessageManager.getInstance().removeMessage(perfectLinkMessage.getPSEQ());
             }
-
         }
         catch (Exception e) {
             e.printStackTrace();
