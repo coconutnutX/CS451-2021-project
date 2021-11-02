@@ -10,9 +10,11 @@ public class Parser {
     private HostsParser hostsParser;
     private OutputParser outputParser;
     private ConfigParser configParser;
+    private int configType;
 
-    public Parser(String[] args) {
+    public Parser(String[] args, int configType) {
         this.args = args;
+        this.configType = configType;
     }
 
     public void parse() {
@@ -21,7 +23,7 @@ public class Parser {
         idParser = new IdParser();
         hostsParser = new HostsParser();
         outputParser = new OutputParser();
-        configParser = new ConfigParser();
+        configParser = new ConfigParser(configType);
 
         int argsNum = args.length;
         if (argsNum != Constants.ARG_LIMIT_CONFIG) {
@@ -70,8 +72,12 @@ public class Parser {
         return configParser.getPath();
     }
 
-    public List<int[]> getMessageConfigList() {
-        return configParser.getMessageConfigList();
+    public List<int[]> getMessageConfigList0() {
+        return configParser.getMessageConfigList0();
+    }
+
+    public List<Integer> getMessageConfigList1() {
+        return configParser.getMessageConfigList1();
     }
 
 }
