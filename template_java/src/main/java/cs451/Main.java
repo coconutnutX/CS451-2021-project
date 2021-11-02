@@ -86,26 +86,6 @@ public class Main {
             }
         }
 
-//        // send messages according to config
-//        for(int[] pair : parser.getMessageConfigList()){
-//            // m defines how many messages each process should send.
-//            // i is the index of the process that should receive the messages.
-//            int m = pair[0];
-//            int i = pair[1];
-//
-//            if(i == myId){
-//                continue;
-//            }
-//
-//            Host desHost = hostManager.getInstance().getHostById(i);
-//            for(int SEQ = 0; SEQ < m; SEQ++){
-//                PerfectLinkMessage perfectLinkMessage = new PerfectLinkMessage(desHost, myHost, SEQ, perfectLink.getAndIncreasePSEQ());
-//                perfectLink.request(perfectLinkMessage);
-//            }
-//
-//            // TODO deliver message broadcast by current process?
-//        }
-
         // After a process finishes broadcasting,
         // it waits forever for the delivery of messages.
         while (true) {

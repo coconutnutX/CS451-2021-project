@@ -9,6 +9,7 @@ import cs451.Host;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Module:
@@ -40,9 +41,8 @@ public class UniformReliableBroadcast {
 
     private PerfectLink perfectLink;      // base perfect link
 
-    private Map<Integer, Map<Integer, URBMessage>> pending; // <CreaterId, <SEQ, URBMessage>>
-
-    // delivered
+    private Map<Integer, Map<Integer, URBMessage>> pending;   // <CreaterId, <SEQ, URBMessage>>
+    private Map<Integer, Set<Integer>> delivered;             // <CreaterId, <SEQ>>
 
 
     public static UniformReliableBroadcast getInstance(){
@@ -56,43 +56,17 @@ public class UniformReliableBroadcast {
         this.logBuffer = new StringBuffer();
         this.outputPath = outputPath;
         this.pending = new HashMap<>();
+        this.delivered = new HashMap<>();
 
         // init PerfectLinks (Singleton)
         perfectLink = PerfectLink.getInstance();
         perfectLink.init(myId, myHost, outputPath);
-    }
 
-    public void addToPending(int createrId, URBMessage urbMessage){
-        if(!pending.containsKey(createrId)){
-            pending.put(createrId, new HashMap<>());
+        // init pending and delivered map
+        for(Host host: HostManager.getInstance().getAllHosts()){
+            pending.put(host.getId(), new HashMap<>());
+            delivered.put(host.getId(), new HashSet<>());
         }
-
-        pending.get(createrId).put(urbMessage.getSEQ(), urbMessage);
-    }
-
-    public boolean isInPending(int createrId, int SEQ){
-        if(!pending.containsKey(createrId)){
-            pending.put(createrId, new HashMap<>());
-        }
-
-        return pending.get(createrId).containsKey(SEQ);
-    }
-
-    public URBMessage getOrCreateURBMessageInPending(int createrId, int SEQ){
-        if(!pending.containsKey(createrId)){
-            pending.put(createrId, new HashMap<>());
-        }
-
-        Map<Integer, URBMessage> createrPending = pending.get(createrId);
-        if(!createrPending.containsKey(SEQ)){
-            // construct URB msg
-            URBMessage urbMessage = new URBMessage(createrId, SEQ);
-
-            // add to pending
-            createrPending.put(SEQ, urbMessage);
-        }
-
-        return createrPending.get(SEQ);
     }
 
     /**
@@ -153,11 +127,69 @@ public class UniformReliableBroadcast {
         URBMessage urbMessage = getOrCreateURBMessageInPending(creater.getId(), SEQ);
         // add ack
         urbMessage.addAck(perfectLinkMessage.getSender().getId());
-        System.out.println("urb indication, creater="+creater.getId()+" SEQ="+SEQ+" #ack="+urbMessage.ackNumber());
+
+        // check if can deliver
+        if(canDeliver(urbMessage)){
+            deliver(urbMessage);
+        }
+    }
+
+    public void deliver(URBMessage urbMessage){
+        // log deliver
+        String logStr = "d " + urbMessage.getCreaterId() + " " + urbMessage.getSEQ() + "\n";
+        if(cs451.Constants.DEBUG_OUTPUT_URB){
+            System.out.print("[urb]  "+logStr);
+        }
+
+        // add to delivered
+        delivered.get(urbMessage.getCreaterId()).add(urbMessage.getSEQ());
     }
 
     public int getAndIncreaseURBSEQ(){
         return currentURBSEQ++;
+    }
+
+    public boolean canDeliver(URBMessage urbMessage){
+        // 1.message is in pending
+
+        // 2.ack > N/2
+        int ackNum = urbMessage.ackNumber();
+        int majorityNum = HostManager.getInstance().getMajorityNumber();
+        boolean cond1 =  ackNum > majorityNum;
+
+        if(cond1 == false){
+            return false;
+        }
+
+        // 3.not delivered already
+        boolean cond2 = delivered.get(urbMessage.getCreaterId()).contains(urbMessage.getSEQ());
+
+        if(cond2 == true){
+            return false;
+        }
+
+        return true;
+    }
+
+    public void addToPending(int createrId, URBMessage urbMessage){
+        pending.get(createrId).put(urbMessage.getSEQ(), urbMessage);
+    }
+
+    public boolean isInPending(int createrId, int SEQ){
+        return pending.get(createrId).containsKey(SEQ);
+    }
+
+    public URBMessage getOrCreateURBMessageInPending(int createrId, int SEQ){
+        Map<Integer, URBMessage> createrPending = pending.get(createrId);
+        if(!createrPending.containsKey(SEQ)){
+            // construct URB msg
+            URBMessage urbMessage = new URBMessage(createrId, SEQ);
+
+            // add to pending
+            createrPending.put(SEQ, urbMessage);
+        }
+
+        return createrPending.get(SEQ);
     }
 
 }
