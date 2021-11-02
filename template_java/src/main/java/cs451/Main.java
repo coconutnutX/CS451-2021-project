@@ -1,14 +1,8 @@
 package cs451;
 
-import java.io.IOException;
-import java.util.HashMap;
-
-import cs451.PerfectLinks.SocketClient;
-import cs451.PerfectLinks.SocketServer;
-import cs451.Host;
-import main.java.cs451.PerfectLinks.HostManager;
-import main.java.cs451.PerfectLinks.PerfectLink;
-import main.java.cs451.PerfectLinks.PerfectLinkMessage;
+import main.java.cs451.pl.HostManager;
+import main.java.cs451.pl.PerfectLink;
+import main.java.cs451.pl.PerfectLinkMessage;
 
 public class Main {
 
