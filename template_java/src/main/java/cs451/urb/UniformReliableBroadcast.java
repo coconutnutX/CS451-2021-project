@@ -30,16 +30,13 @@ import java.util.Set;
 public class UniformReliableBroadcast {
 
     private static UniformReliableBroadcast instance = new UniformReliableBroadcast();
-    private UniformReliableBroadcast(){}
+    private UniformReliableBroadcast(){};
 
     private int myId;                     // id of current process
     private cs451.Host myHost;            // host of current process
     private int currentURBSEQ;            // keep track of URBSEQ of this process, should be unique in all processes
 
-    private StringBuffer logBuffer;       // store log, write to file when terminate
-    private String outputPath;            // output log file path
-
-    private PerfectLink perfectLink;      // base perfect link
+    private PerfectLink perfectLink;      // base on perfect link
 
     private Map<Integer, Map<Integer, URBMessage>> pending;   // <CreaterId, <SEQ, URBMessage>>
     private Map<Integer, Set<Integer>> delivered;             // <CreaterId, <SEQ>>
@@ -53,8 +50,6 @@ public class UniformReliableBroadcast {
         this.myId = myId;
         this.myHost = myHost;
         this.currentURBSEQ = 0;
-        this.logBuffer = new StringBuffer();
-        this.outputPath = outputPath;
         this.pending = new HashMap<>();
         this.delivered = new HashMap<>();
 
