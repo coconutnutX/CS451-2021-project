@@ -1,5 +1,6 @@
 package main.java.cs451.urb;
 
+import main.java.cs451.fifo.FIFOBroadcast;
 import main.java.cs451.pl.HostManager;
 import main.java.cs451.pl.PerfectLink;
 import main.java.cs451.pl.PerfectLinkMessage;
@@ -138,6 +139,9 @@ public class UniformReliableBroadcast {
 
         // add to delivered
         delivered.get(urbMessage.getCreaterId()).add(urbMessage.getSEQ());
+
+        // call FIFO indication
+        FIFOBroadcast.getInstance().indication(urbMessage);
     }
 
     public int getAndIncreaseURBSEQ(){

@@ -1,5 +1,7 @@
 package cs451;
 
+import main.java.cs451.fifo.FIFOBroadcast;
+import main.java.cs451.fifo.FIFOMessage;
 import main.java.cs451.pl.HostManager;
 import main.java.cs451.pl.PerfectLink;
 import main.java.cs451.pl.PerfectLinkMessage;
@@ -19,6 +21,7 @@ public class Main {
         // PerfectLink.getInstance().writeLogFile();
 
         // FIFO Broadcast application
+        FIFOBroadcast.getInstance().writeLogFile();
 
         // Localized Causal Broadcast
     }
@@ -72,17 +75,17 @@ public class Main {
         HostManager hostManager = HostManager.getInstance();
         Host myHost = hostManager.init(parser.hosts(), myId);
 
-        // init UniformReliableBroadcast (Singleton)
-        UniformReliableBroadcast uniformReliableBroadcast = UniformReliableBroadcast.getInstance();
-        uniformReliableBroadcast.init(myId, myHost, outputPath);
+        // init FIFOBroadcast (Singleton)
+        FIFOBroadcast fifoBroadcast = FIFOBroadcast.getInstance();
+        fifoBroadcast.init(myId, myHost, outputPath);
 
         System.out.println("Broadcasting and delivering messages...\n");
 
         for(int m : parser.getMessageConfigList1()){
             // m defines how many messages each process should broadcast
             for(int i = 0; i < m; i++) {
-                URBMessage urbMessage = new URBMessage(myId, uniformReliableBroadcast.getAndIncreaseURBSEQ());
-                uniformReliableBroadcast.request(urbMessage);
+                FIFOMessage fifoMessage = new FIFOMessage(myId, fifoBroadcast.getAndIncreaseFIFOSEQ());
+                fifoBroadcast.request(fifoMessage);
             }
         }
 
