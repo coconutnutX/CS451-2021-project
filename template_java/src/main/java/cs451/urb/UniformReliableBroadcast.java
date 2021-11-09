@@ -50,7 +50,7 @@ public class UniformReliableBroadcast {
     public void init(int myId, cs451.Host myHost, String outputPath){
         this.myId = myId;
         this.myHost = myHost;
-        this.currentURBSEQ = 0;
+        this.currentURBSEQ = 1;
         this.pending = new HashMap<>();
         this.delivered = new HashMap<>();
 

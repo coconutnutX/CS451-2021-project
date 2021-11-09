@@ -51,7 +51,7 @@ public class PerfectLink {
     public void init(int myId, Host myHost, String outputPath) {
         this.myId = myId;
         this.myHost = myHost;
-        this.currentPSEQ = 0;
+        this.currentPSEQ = 1;
         this.deliverMap = new HashMap<Integer, HashSet<Integer>>();
         this.logBuffer = new StringBuffer();
         this.outputPath = outputPath;

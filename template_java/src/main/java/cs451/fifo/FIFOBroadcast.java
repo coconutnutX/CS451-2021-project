@@ -48,11 +48,14 @@ public class FIFOBroadcast {
     public void init(int myId, Host myHost, String outputPath){
         this.myId = myId;
         this.myHost = myHost;
-        this.currentFIFOSEQ = 0;
+        this.currentFIFOSEQ = 1;
         this.logBuffer = new StringBuffer();
         this.outputPath = outputPath;
         this.pending = new HashMap<>();
+
+        // init next, fill with 1s
         this.next = new int[HostManager.getInstance().getTotalHostNumber()+1]; // host id from 1
+        Arrays.fill(next,1);
 
         // init UniformReliableBroadcast (Singleton)
         uniformReliableBroadcast = UniformReliableBroadcast.getInstance();
