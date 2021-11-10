@@ -16,6 +16,7 @@ public class OutputManager {
         return instance;
     }
     public void init(String outputPath){
+        this.logBuffer = new StringBuffer();
         this.outputPath = outputPath;
     }
 
@@ -29,6 +30,7 @@ public class OutputManager {
             System.out.println(logBuffer.toString());
             bufferedWriter.write(logBuffer.toString());
             bufferedWriter.close();
+            System.out.println("Write output done.");
         } catch (IOException e) {
             e.printStackTrace();
         }
