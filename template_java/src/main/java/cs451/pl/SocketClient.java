@@ -8,12 +8,11 @@ import java.net.*;
 
 public class SocketClient {
 
-    private static DatagramSocket datagramSocket;
-
     public void sendMessage(PerfectLinkMessage perfectLinkMessage){
+        DatagramSocket datagramSocket = null;
         try {
             // init
-            DatagramSocket datagramSocket = new DatagramSocket();
+            datagramSocket = new DatagramSocket();
             Host receiver = perfectLinkMessage.getReceiver();
             InetSocketAddress address = new InetSocketAddress(receiver.getIp(), receiver.getPort());
             byte[] sendData = (perfectLinkMessage.getMessage()).getBytes();
@@ -33,9 +32,10 @@ public class SocketClient {
     }
 
     public void sendACK(PerfectLinkMessage perfectLinkMessage){
+        DatagramSocket datagramSocket = null;
         try {
             // init
-            DatagramSocket datagramSocket = new DatagramSocket();
+            datagramSocket = new DatagramSocket();
             Host host = perfectLinkMessage.getSender(); // here receiver is the original sender
             InetSocketAddress address = new InetSocketAddress(host.getIp(), host.getPort());
             byte[] sendData = (perfectLinkMessage.getAckMessage()).getBytes();
