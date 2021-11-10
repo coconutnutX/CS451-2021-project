@@ -41,20 +41,15 @@ public class PerfectLink {
 
     private HashMap<Integer, HashSet<Integer>> deliverMap; // messages delivered, <sender ID, PSEQ>
 
-    private StringBuffer logBuffer; // store log, write to file when terminate
-    private String outputPath;      // output log file path
-
     public static PerfectLink getInstance(){
         return instance;
     }
 
-    public void init(int myId, Host myHost, String outputPath) {
+    public void init(int myId, Host myHost) {
         this.myId = myId;
         this.myHost = myHost;
         this.currentPSEQ = 1;
         this.deliverMap = new HashMap<Integer, HashSet<Integer>>();
-        this.logBuffer = new StringBuffer();
-        this.outputPath = outputPath;
         this.socketServer = new SocketServer(myId, myHost);
         this.messageResender = new MessageResender();
 
@@ -120,21 +115,6 @@ public class PerfectLink {
 
     public int getAndIncreasePSEQ(){
        return currentPSEQ++;
-    }
-
-    public void addLogBuffer(String str){
-        logBuffer.append(str);
-    }
-
-    public void writeLogFile(){
-        try {
-            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(outputPath));
-            System.out.println(logBuffer.toString());
-            bufferedWriter.write(logBuffer.toString());
-            bufferedWriter.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
 }

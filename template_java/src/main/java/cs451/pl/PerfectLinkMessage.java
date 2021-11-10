@@ -1,6 +1,7 @@
 package main.java.cs451.pl;
 
 import cs451.Host;
+import main.java.cs451.tool.HostManager;
 
 /**
  * message format: 0 senderID SEQ PSEQ

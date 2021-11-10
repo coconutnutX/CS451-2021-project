@@ -1,7 +1,7 @@
 package main.java.cs451.urb;
 
 import main.java.cs451.fifo.FIFOBroadcast;
-import main.java.cs451.pl.HostManager;
+import main.java.cs451.tool.HostManager;
 import main.java.cs451.pl.PerfectLink;
 import main.java.cs451.pl.PerfectLinkMessage;
 
@@ -47,7 +47,7 @@ public class UniformReliableBroadcast {
         return instance;
     }
 
-    public void init(int myId, cs451.Host myHost, String outputPath){
+    public void init(int myId, cs451.Host myHost){
         this.myId = myId;
         this.myHost = myHost;
         this.currentURBSEQ = 1;
@@ -56,7 +56,7 @@ public class UniformReliableBroadcast {
 
         // init PerfectLinks (Singleton)
         perfectLink = PerfectLink.getInstance();
-        perfectLink.init(myId, myHost, outputPath);
+        perfectLink.init(myId, myHost);
 
         // init pending and delivered map
         for(Host host: HostManager.getInstance().getAllHosts()){

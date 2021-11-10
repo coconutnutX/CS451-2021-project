@@ -2,11 +2,8 @@ package cs451;
 
 import main.java.cs451.fifo.FIFOBroadcast;
 import main.java.cs451.fifo.FIFOMessage;
-import main.java.cs451.pl.HostManager;
-import main.java.cs451.pl.PerfectLink;
-import main.java.cs451.pl.PerfectLinkMessage;
-import main.java.cs451.urb.URBMessage;
-import main.java.cs451.urb.UniformReliableBroadcast;
+import main.java.cs451.tool.HostManager;
+import main.java.cs451.tool.OutputManager;
 
 public class Main {
 
@@ -17,13 +14,7 @@ public class Main {
         //write/flush output file if necessary
         System.out.println("Writing output.");
 
-        // Perfect Links application
-        // PerfectLink.getInstance().writeLogFile();
-
-        // FIFO Broadcast application
-        FIFOBroadcast.getInstance().writeLogFile();
-
-        // Localized Causal Broadcast
+        OutputManager.getInstance().writeLogFile();
     }
 
     private static void initSignalHandlers() {
@@ -71,13 +62,16 @@ public class Main {
         int myId = parser.myId();
         String outputPath = parser.output();
 
+        // init OutputManager
+        OutputManager.getInstance().init(outputPath);
+
         // init HostManager (Singleton)
         HostManager hostManager = HostManager.getInstance();
         Host myHost = hostManager.init(parser.hosts(), myId);
 
         // init FIFOBroadcast (Singleton)
         FIFOBroadcast fifoBroadcast = FIFOBroadcast.getInstance();
-        fifoBroadcast.init(myId, myHost, outputPath);
+        fifoBroadcast.init(myId, myHost);
 
         System.out.println("Broadcasting and delivering messages...\n");
 

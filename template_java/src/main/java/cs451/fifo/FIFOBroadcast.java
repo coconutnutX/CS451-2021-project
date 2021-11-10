@@ -1,7 +1,7 @@
 package main.java.cs451.fifo;
 
-import cs451.Constants;
-import main.java.cs451.pl.HostManager;
+import main.java.cs451.tool.HostManager;
+import main.java.cs451.tool.OutputManager;
 import main.java.cs451.urb.URBMessage;
 import main.java.cs451.urb.UniformReliableBroadcast;
 import cs451.Host;
@@ -33,9 +33,6 @@ public class FIFOBroadcast {
     private cs451.Host myHost;            // host of current process
     private int currentFIFOSEQ;           // keep track of FIFOSEQ of this process
 
-    private StringBuffer logBuffer;       // store log, write to file when terminate
-    private String outputPath;            // output log file path
-
     private Map<Integer, PriorityQueue<FIFOMessage>> pending;     // <CreaterId, <SEQ, FIFOMessage>>, smallest on top
     private int[] next;                   // next SEQ from each process
 
@@ -45,12 +42,10 @@ public class FIFOBroadcast {
         return instance;
     }
 
-    public void init(int myId, Host myHost, String outputPath){
+    public void init(int myId, Host myHost){
         this.myId = myId;
         this.myHost = myHost;
         this.currentFIFOSEQ = 1;
-        this.logBuffer = new StringBuffer();
-        this.outputPath = outputPath;
         this.pending = new HashMap<>();
 
         // init next, fill with 1s
@@ -59,7 +54,7 @@ public class FIFOBroadcast {
 
         // init UniformReliableBroadcast (Singleton)
         uniformReliableBroadcast = UniformReliableBroadcast.getInstance();
-        uniformReliableBroadcast.init(myId, myHost, outputPath);
+        uniformReliableBroadcast.init(myId, myHost);
 
         // init pending map
         for(Host host: HostManager.getInstance().getAllHosts()){
@@ -82,7 +77,7 @@ public class FIFOBroadcast {
             System.out.print("[fifo]  "+logStr);
         }
         if(cs451.Constants.WRITE_LOG_FIFO){
-            addLogBuffer(logStr);
+            OutputManager.getInstance().addLogBuffer(logStr);
         }
 
         // call urb request
@@ -130,22 +125,7 @@ public class FIFOBroadcast {
             System.out.print("[fifo]  "+logStr);
         }
         if(cs451.Constants.WRITE_LOG_FIFO){
-            addLogBuffer(logStr);
-        }
-    }
-
-    public void addLogBuffer(String str){
-        logBuffer.append(str);
-    }
-
-    public void writeLogFile(){
-        try {
-            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(outputPath));
-            System.out.println(logBuffer.toString());
-            bufferedWriter.write(logBuffer.toString());
-            bufferedWriter.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+            OutputManager.getInstance().addLogBuffer(logStr);
         }
     }
 
