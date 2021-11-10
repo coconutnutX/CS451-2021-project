@@ -20,11 +20,11 @@ public class MessageManager {
         return instance;
     }
 
-    public void addMessage(PerfectLinkMessage perfectLinkMessage){
+    public synchronized void addMessage(PerfectLinkMessage perfectLinkMessage){
         messageSendMap.put(perfectLinkMessage.getPSEQ(), perfectLinkMessage);
     }
 
-    public void removeMessage(int PSEQ){
+    public synchronized void removeMessage(int PSEQ){
         messageSendMap.remove(PSEQ);
     }
 
