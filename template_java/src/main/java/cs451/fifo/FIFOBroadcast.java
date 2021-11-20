@@ -10,6 +10,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Module:
@@ -33,7 +34,7 @@ public class FIFOBroadcast {
     private cs451.Host myHost;            // host of current process
     private int currentFIFOSEQ;           // keep track of FIFOSEQ of this process
 
-    private Map<Integer, PriorityQueue<FIFOMessage>> pending;     // <CreaterId, <SEQ, FIFOMessage>>, smallest on top
+    private Map<Integer, PriorityQueue<FIFOMessage>> pending;     // <CreaterId, <FIFOMessage>>, smallest on top
     private int[] next;                   // next SEQ from each process
 
     private UniformReliableBroadcast uniformReliableBroadcast;      // base on uniform reliable broadcast
@@ -46,7 +47,7 @@ public class FIFOBroadcast {
         this.myId = myId;
         this.myHost = myHost;
         this.currentFIFOSEQ = 1;
-        this.pending = new HashMap<>();
+        this.pending = new ConcurrentHashMap<>();
 
         // init next, fill with 1s
         this.next = new int[HostManager.getInstance().getTotalHostNumber()+1]; // host id from 1
@@ -88,7 +89,7 @@ public class FIFOBroadcast {
     /**
      * Indication: ⟨ frb, Deliver | p, m ⟩: Delivers a message m broadcast by process p.
      */
-    public void indication(URBMessage urbMessage){
+    public synchronized void indication(URBMessage urbMessage){
         // add to pending
         PriorityQueue<FIFOMessage> queue = pending.get(urbMessage.getCreaterId());
         FIFOMessage fifoMessage = new FIFOMessage(urbMessage.getCreaterId(), urbMessage.getSEQ());
@@ -102,7 +103,7 @@ public class FIFOBroadcast {
         return currentFIFOSEQ++;
     }
 
-    public void checkDeliver(int createrId){
+    public synchronized void checkDeliver(int createrId){
         PriorityQueue<FIFOMessage> queue = pending.get(createrId);
         while(!queue.isEmpty()){
             // check if is next message

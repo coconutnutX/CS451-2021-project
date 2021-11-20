@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Module:
@@ -51,8 +52,8 @@ public class UniformReliableBroadcast {
         this.myId = myId;
         this.myHost = myHost;
         this.currentURBSEQ = 1;
-        this.pending = new HashMap<>();
-        this.delivered = new HashMap<>();
+        this.pending = new ConcurrentHashMap<>();
+        this.delivered = new ConcurrentHashMap<>();
 
         // init PerfectLinks (Singleton)
         perfectLink = PerfectLink.getInstance();
@@ -60,7 +61,7 @@ public class UniformReliableBroadcast {
 
         // init pending and delivered map
         for(Host host: HostManager.getInstance().getAllHosts()){
-            pending.put(host.getId(), new HashMap<>());
+            pending.put(host.getId(), new ConcurrentHashMap<>());
             delivered.put(host.getId(), new HashSet<>());
         }
     }

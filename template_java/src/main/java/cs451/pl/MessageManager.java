@@ -1,6 +1,6 @@
 package main.java.cs451.pl;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Keep track of all messages send but not yet received ACK
@@ -10,25 +10,25 @@ import java.util.HashMap;
 public class MessageManager {
 
     private static MessageManager instance = new MessageManager();
-    private HashMap<Integer, PerfectLinkMessage> messageSendMap; // index:PSEQ
+    private ConcurrentHashMap<Integer, PerfectLinkMessage> messageSendMap; // index:PSEQ
 
     private MessageManager(){
-        messageSendMap = new HashMap<Integer, PerfectLinkMessage>();
+        messageSendMap = new ConcurrentHashMap<Integer, PerfectLinkMessage>();
     }
 
     public static MessageManager getInstance(){
         return instance;
     }
 
-    public synchronized void addMessage(PerfectLinkMessage perfectLinkMessage){
+    public void addMessage(PerfectLinkMessage perfectLinkMessage){
         messageSendMap.put(perfectLinkMessage.getPSEQ(), perfectLinkMessage);
     }
 
-    public synchronized void removeMessage(int PSEQ){
+    public void removeMessage(int PSEQ){
         messageSendMap.remove(PSEQ);
     }
 
-    public HashMap<Integer, PerfectLinkMessage> getMessageSendMap(){
+    public ConcurrentHashMap<Integer, PerfectLinkMessage> getMessageSendMap(){
         return messageSendMap;
     }
 }

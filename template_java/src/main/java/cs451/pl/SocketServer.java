@@ -20,7 +20,7 @@ public class SocketServer extends Thread{
         this.myHost = myHost;
 
         // handler thread pool
-        executor = Executors.newFixedThreadPool(4);
+        executor = Executors.newFixedThreadPool(6);
 
         try {
             datagramSocket = new DatagramSocket(myHost.getPort());

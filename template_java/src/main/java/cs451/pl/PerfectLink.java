@@ -1,14 +1,9 @@
 package main.java.cs451.pl;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 
 import cs451.Host;
-import main.java.cs451.pl.SocketServer;
-import main.java.cs451.pl.SocketClient;
 import main.java.cs451.urb.UniformReliableBroadcast;
 
 /***
@@ -63,7 +58,7 @@ public class PerfectLink {
     }
 
     // request to send message perfectLinkMessage
-    public synchronized void request(PerfectLinkMessage perfectLinkMessage){
+    public void request(PerfectLinkMessage perfectLinkMessage){
         // log info
         if(!perfectLinkMessage.isResend){
             String logStr = "b " + perfectLinkMessage.getSEQ() + "\n";
@@ -87,7 +82,7 @@ public class PerfectLink {
     }
 
     // deliver message
-    public synchronized void indication(PerfectLinkMessage perfectLinkMessage){
+    public void indication(PerfectLinkMessage perfectLinkMessage){
         int senderId = perfectLinkMessage.getSender().getId();
         int PSEQ = perfectLinkMessage.getPSEQ();
 
@@ -110,7 +105,6 @@ public class PerfectLink {
 
             UniformReliableBroadcast.getInstance().indication(perfectLinkMessage);
         }
-
     }
 
     public int getAndIncreasePSEQ(){
