@@ -11,6 +11,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Module:
@@ -39,6 +40,8 @@ public class FIFOBroadcast {
 
     private UniformReliableBroadcast uniformReliableBroadcast;      // base on uniform reliable broadcast
 
+    private AtomicInteger pendingNum;
+
     public static FIFOBroadcast getInstance() {
         return instance;
     }
@@ -48,6 +51,7 @@ public class FIFOBroadcast {
         this.myHost = myHost;
         this.currentFIFOSEQ = 1;
         this.pending = new ConcurrentHashMap<>();
+        this.pendingNum = new AtomicInteger(0);
 
         // init next, fill with 1s
         this.next = new int[HostManager.getInstance().getTotalHostNumber()+1]; // host id from 1
@@ -84,6 +88,9 @@ public class FIFOBroadcast {
         // call urb request
         URBMessage urbMessage = new URBMessage(fifoMessage.getCreaterId(), fifoMessage.getSEQ());
         uniformReliableBroadcast.bufferedRequest(urbMessage);
+
+        // add pending count
+        pendingNum.incrementAndGet();
     }
 
     /**
@@ -128,6 +135,19 @@ public class FIFOBroadcast {
         if(cs451.Constants.WRITE_LOG_FIFO){
             OutputManager.getInstance().addLogBuffer(logStr);
         }
+
+        // decrease pending number
+        if(fifoMessage.getCreaterId() == myId){
+            pendingNum.decrementAndGet();
+        }
+    }
+
+    public int getPendingNum(){
+        return pendingNum.get();
+    }
+
+    public int getSelfDeliveredNum(){
+        return next[myId];
     }
 
 }

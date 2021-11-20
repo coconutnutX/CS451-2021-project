@@ -4,6 +4,7 @@ import main.java.cs451.fifo.FIFOBroadcast;
 import main.java.cs451.fifo.FIFOMessage;
 import main.java.cs451.tool.HostManager;
 import main.java.cs451.tool.OutputManager;
+import main.java.cs451.urb.UniformReliableBroadcast;
 
 public class Main {
 
@@ -78,11 +79,22 @@ public class Main {
         for(int m : parser.getMessageConfigList1()){
             // m defines how many messages each process should broadcast
             for(int i = 0; i < m; i++) {
-                FIFOMessage fifoMessage = new FIFOMessage(myId, fifoBroadcast.getAndIncreaseFIFOSEQ());
-                fifoBroadcast.request(fifoMessage);
+                int pending = fifoBroadcast.getPendingNum();
+                if(pending < 128){
+                    // send messsage normally
+                    FIFOMessage fifoMessage = new FIFOMessage(myId, fifoBroadcast.getAndIncreaseFIFOSEQ());
+                    fifoBroadcast.request(fifoMessage);
+                }else if(pending < 256){
+                    // send and wait
+                    FIFOMessage fifoMessage = new FIFOMessage(myId, fifoBroadcast.getAndIncreaseFIFOSEQ());
+                    fifoBroadcast.request(fifoMessage);
 
-                // pause for a while after sending some messages
-                if(m % 64 == 0){
+                    Thread.sleep(500);
+                }else{
+                    // don't send
+                    i--;
+
+                    // System.out.println("[urb #d]"+ UniformReliableBroadcast.getInstance().getSelfDeliveredNum() + " [fifo #d]"+fifoBroadcast.getSelfDeliveredNum());
                     Thread.sleep(500);
                 }
             }

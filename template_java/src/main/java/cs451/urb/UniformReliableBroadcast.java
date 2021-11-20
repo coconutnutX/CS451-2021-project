@@ -43,10 +43,10 @@ public class UniformReliableBroadcast {
     private PerfectLink perfectLink;      // base on perfect link
 
     private Map<Integer, Map<Integer, URBMessage>> pending;   // <CreaterId, <SEQ, URBMessage>>
-    private Map<Integer, Map<Integer, Integer>> delivered;             // <CreaterId, <SEQ>>
+    private Map<Integer, Map<Integer, Integer>> delivered;    // <CreaterId, <SEQ>>
 
     private ConcurrentLinkedQueue<URBMessage> buffer;         // messages to send (control speed of sending message generated from current process)
-    private AtomicInteger pendingNum;                         // pending message number (can not use pending.size: 1.not removed when deliver 2.has relay messages)
+    private AtomicInteger pendingNum;                         // pending message number created by current process
     private Thread urbMessageBufferSender;                    // thread to send URB messages
 
     public static UniformReliableBroadcast getInstance(){
@@ -117,6 +117,11 @@ public class UniformReliableBroadcast {
         Host creater = perfectLinkMessage.getCreater();
         int SEQ = perfectLinkMessage.getSEQ();
 
+        // already delivered, return
+        if(isInDelivered(creater.getId(), SEQ)){
+            return;
+        }
+
         // not in pending, relay
         if(!isInPending(creater.getId(), SEQ)){
             // log broadcast
@@ -158,6 +163,9 @@ public class UniformReliableBroadcast {
 
         // add to delivered
         delivered.get(urbMessage.getCreaterId()).put(urbMessage.getSEQ(), 0);
+
+        // remove from pending
+        pending.get(urbMessage.getCreaterId()).remove(urbMessage.getSEQ());
 
         // if deliver message send by current thread, decrease pending number
         if(urbMessage.getCreaterId() == myId){
@@ -202,6 +210,10 @@ public class UniformReliableBroadcast {
         return pending.get(createrId).containsKey(SEQ);
     }
 
+    public boolean isInDelivered(int createrId, int SEQ){
+        return delivered.get(createrId).containsKey(SEQ);
+    }
+
     public URBMessage getOrCreateURBMessageInPending(int createrId, int SEQ){
         Map<Integer, URBMessage> createrPending = pending.get(createrId);
         if(!createrPending.containsKey(SEQ)){
@@ -213,6 +225,14 @@ public class UniformReliableBroadcast {
         }
 
         return createrPending.get(SEQ);
+    }
+
+    public int getSelfDeliveredNum(){
+        return delivered.get(myId).size();
+    }
+
+    public int getSelfPendingNum(){
+        return pending.get(myId).size();
     }
 
 }

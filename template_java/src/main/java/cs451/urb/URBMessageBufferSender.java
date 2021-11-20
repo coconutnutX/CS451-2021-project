@@ -13,46 +13,48 @@ public class URBMessageBufferSender extends Thread{
     private int windowSize;                                   // send buffer sliding window size
     private int totalCount;                                   // count total send number for debug
     private int period;                                       // initial gap period
-    private int round;                                        // round of checking, start delay after some number
+    private UniformReliableBroadcast uniformReliableBroadcast;
 
     public URBMessageBufferSender(ConcurrentLinkedQueue<URBMessage> buffer, AtomicInteger pendingNum){
         this.buffer = buffer;
         this.pendingNum = pendingNum;
         this.windowSize = cs451.Constants.URB_BUFFERED_WINDOW_SIZE;
         this.totalCount = 0;
-        this.period = cs451.Constants.INIT_URB_BUFFERED_SEND_PERIOD;
-        this.round = 0;
+        this.period = cs451.Constants.URB_BUFFERED_SEND_PERIOD;
+        this.uniformReliableBroadcast = UniformReliableBroadcast.getInstance();
     }
 
     public void run(){
         try{
             while(true){
-                int count = 0;
-                int pending = pendingNum.get();
-                // check if window is not full & has message in buffer
-                while(pendingNum.get() < windowSize && buffer.size() > 0){
-                    // get a message from buffer and send it
-                    URBMessage urbMessage = buffer.remove();
-                    UniformReliableBroadcast.getInstance().request(urbMessage);
-                    // add pending number
-                    pendingNum.incrementAndGet();
-                    count++;
-                }
-                totalCount += count;
+                int pending = uniformReliableBroadcast.getSelfPendingNum();
+                int canSend = windowSize - pending;
+                if(buffer.size() > 0 && canSend > 0){
+                    canSend = canSend > buffer.size() ? buffer.size() : canSend;
 
-                if(round > Constants.URB_BUFFERED_START_DELAY_AFTER_ROUND){
-                    // if has no message in buffer, double check period
-                    period = period*2 < Constants.MAX_URB_BUFFERED_SEND_PERIOD ? period*2 : Constants.MAX_URB_BUFFERED_SEND_PERIOD;
+                    for(int i=0; i<canSend; i++){
+                        // get a message from buffer and send it
+                        URBMessage urbMessage = buffer.remove();
+                        UniformReliableBroadcast.getInstance().request(urbMessage);
+                        // add pending number
+                        // pendingNum.incrementAndGet();
+                        totalCount++;
+                    }
                 }
+//                int pending = pendingNum.get();
+//                // check if window is not full & has message in buffer
+//                while(pendingNum.get() < windowSize && buffer.size() > 0){
+//                    // get a message from buffer and send it
+//                    URBMessage urbMessage = buffer.remove();
+//                    UniformReliableBroadcast.getInstance().request(urbMessage);
+//                    // add pending number
+//                    pendingNum.incrementAndGet();
+//                    totalCount++;
+//                }
 
                 if(cs451.Constants.DEBUG_OUTPUT_URB_BUFFER){
-                    // System.out.println("[urb buffer] send:" + count + " total send:" + totalCount + " gap:" + period);
-
-                    // Debug output
-                    System.out.println("[urb buffer] send:" + count + " total send:" + totalCount +" pending:"+pending+ " gap:" + period);
+                    System.out.println("[urb buffer] total send:" + totalCount +" pending:"+pending+" [ud]"+UniformReliableBroadcast.getInstance().getSelfDeliveredNum()+" [fd]"+FIFOBroadcast.getInstance().getSelfDeliveredNum());
                 }
-
-                round++;
 
                 // sleep
                 Thread.sleep(period);
