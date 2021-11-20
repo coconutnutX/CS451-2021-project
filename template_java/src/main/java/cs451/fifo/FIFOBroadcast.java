@@ -83,7 +83,7 @@ public class FIFOBroadcast {
 
         // call urb request
         URBMessage urbMessage = new URBMessage(fifoMessage.getCreaterId(), fifoMessage.getSEQ());
-        uniformReliableBroadcast.request(urbMessage);
+        uniformReliableBroadcast.bufferedRequest(urbMessage);
     }
 
     /**

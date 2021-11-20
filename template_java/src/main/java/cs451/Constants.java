@@ -22,13 +22,14 @@ public class Constants {
     public static final int RESEND_PERIOD = 300;
 
     // urb buffered send check period (ms)
-    public static final int INIT_URB_BUFFERED_SEND_PERIOD = 50;
+    public static final int INIT_URB_BUFFERED_SEND_PERIOD = 100;
     public static final int MAX_URB_BUFFERED_SEND_PERIOD = 4000;
-    public static final int URB_BUFFERED_WINDOW_SIZE = 128;
+    public static final int URB_BUFFERED_WINDOW_SIZE = 64;
+    public static final int URB_BUFFERED_START_DELAY_AFTER_ROUND = 60;
 
     // debug output
     public static final boolean DEBUG_OUTPUT_PL = false;
-    public static final boolean DEBUG_OUTPUT_URB = true;
+    public static final boolean DEBUG_OUTPUT_URB = false;
     public static final boolean DEBUG_OUTPUT_URB_RELAY = false;
     public static final boolean DEBUG_OUTPUT_URB_BUFFER = true;
     public static final boolean DEBUG_OUTPUT_FIFO = true;

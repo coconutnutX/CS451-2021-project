@@ -12,6 +12,7 @@ public class URBMessageBufferSender extends Thread{
     private int windowSize;                                   // send buffer sliding window size
     private int totalCount;                                   // count total send number for debug
     private int period;                                       // initial gap period
+    private int round;                                        // round of checking, start delay after some number
 
     public URBMessageBufferSender(ConcurrentLinkedQueue<URBMessage> buffer, AtomicInteger pendingNum){
         this.buffer = buffer;
@@ -19,6 +20,7 @@ public class URBMessageBufferSender extends Thread{
         this.windowSize = cs451.Constants.URB_BUFFERED_WINDOW_SIZE;
         this.totalCount = 0;
         this.period = cs451.Constants.INIT_URB_BUFFERED_SEND_PERIOD;
+        this.round = 0;
     }
 
     public void run(){
@@ -36,12 +38,16 @@ public class URBMessageBufferSender extends Thread{
                 }
                 totalCount += count;
 
-                // if has no message in buffer, double check period
-                period = period*2 < Constants.MAX_URB_BUFFERED_SEND_PERIOD ? period*2 : Constants.MAX_URB_BUFFERED_SEND_PERIOD;
+                if(round > Constants.URB_BUFFERED_START_DELAY_AFTER_ROUND){
+                    // if has no message in buffer, double check period
+                    period = period*2 < Constants.MAX_URB_BUFFERED_SEND_PERIOD ? period*2 : Constants.MAX_URB_BUFFERED_SEND_PERIOD;
+                }
 
                 if(cs451.Constants.DEBUG_OUTPUT_URB_BUFFER){
                     System.out.println("[urb buffer] send:" + count + " total send:" + totalCount + " gap:" + period);
                 }
+
+                round++;
 
                 // sleep
                 Thread.sleep(period);
