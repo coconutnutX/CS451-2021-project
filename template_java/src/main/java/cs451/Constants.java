@@ -24,6 +24,7 @@ public class Constants {
     // urb buffered send check period (ms)
     public static final int URB_BUFFERED_SEND_PERIOD = 500;
     public static final int URB_BUFFERED_WINDOW_SIZE = 256;
+    public static final boolean ACTIVATE_URB_BUFFER = false;
 
     // debug output
     public static final boolean DEBUG_OUTPUT_PL = false;

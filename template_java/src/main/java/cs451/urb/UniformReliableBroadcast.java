@@ -46,7 +46,6 @@ public class UniformReliableBroadcast {
     private Map<Integer, Map<Integer, Integer>> delivered;    // <CreaterId, <SEQ>>
 
     private ConcurrentLinkedQueue<URBMessage> buffer;         // messages to send (control speed of sending message generated from current process)
-    private AtomicInteger pendingNum;                         // pending message number created by current process
     private Thread urbMessageBufferSender;                    // thread to send URB messages
 
     public static UniformReliableBroadcast getInstance(){
@@ -59,7 +58,6 @@ public class UniformReliableBroadcast {
         this.currentURBSEQ = 1;
         this.pending = new HashMap<>();
         this.delivered = new HashMap<>();
-        this.pendingNum = new AtomicInteger(0);
         this.buffer = new ConcurrentLinkedQueue<>();
 
         // init PerfectLinks (Singleton)
@@ -72,9 +70,11 @@ public class UniformReliableBroadcast {
             delivered.put(host.getId(), new ConcurrentHashMap<>());
         }
 
-        // init URB message buffer sender
-        urbMessageBufferSender = new URBMessageBufferSender(buffer, pendingNum);
-        urbMessageBufferSender.start();
+        if(cs451.Constants.ACTIVATE_URB_BUFFER){
+            // init URB message buffer sender
+            urbMessageBufferSender = new URBMessageBufferSender(buffer);
+            urbMessageBufferSender.start();
+        }
     }
 
     public void bufferedRequest(URBMessage urbMessage){
@@ -88,7 +88,6 @@ public class UniformReliableBroadcast {
     public void request(URBMessage urbMessage){
         // add message to pending
         addToPending(myId, urbMessage);
-        pendingNum.incrementAndGet();
 
         // log broadcast
         if(cs451.Constants.DEBUG_OUTPUT_URB){
@@ -166,11 +165,6 @@ public class UniformReliableBroadcast {
 
         // remove from pending
         pending.get(urbMessage.getCreaterId()).remove(urbMessage.getSEQ());
-
-        // if deliver message send by current thread, decrease pending number
-        if(urbMessage.getCreaterId() == myId){
-            pendingNum.decrementAndGet();
-        }
 
         // call FIFO indication
         FIFOBroadcast.getInstance().indication(urbMessage);

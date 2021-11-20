@@ -80,16 +80,10 @@ public class Main {
             // m defines how many messages each process should broadcast
             for(int i = 0; i < m; i++) {
                 int pending = fifoBroadcast.getPendingNum();
-                if(pending < 128){
+                if(pending < 256){
                     // send messsage normally
                     FIFOMessage fifoMessage = new FIFOMessage(myId, fifoBroadcast.getAndIncreaseFIFOSEQ());
                     fifoBroadcast.request(fifoMessage);
-                }else if(pending < 256){
-                    // send and wait
-                    FIFOMessage fifoMessage = new FIFOMessage(myId, fifoBroadcast.getAndIncreaseFIFOSEQ());
-                    fifoBroadcast.request(fifoMessage);
-
-                    Thread.sleep(500);
                 }else{
                     // don't send
                     i--;

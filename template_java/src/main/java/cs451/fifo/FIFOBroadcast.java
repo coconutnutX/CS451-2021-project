@@ -1,5 +1,6 @@
 package main.java.cs451.fifo;
 
+import cs451.Constants;
 import main.java.cs451.tool.HostManager;
 import main.java.cs451.tool.OutputManager;
 import main.java.cs451.urb.URBMessage;
@@ -87,7 +88,11 @@ public class FIFOBroadcast {
 
         // call urb request
         URBMessage urbMessage = new URBMessage(fifoMessage.getCreaterId(), fifoMessage.getSEQ());
-        uniformReliableBroadcast.bufferedRequest(urbMessage);
+        if(Constants.ACTIVATE_URB_BUFFER){
+            uniformReliableBroadcast.bufferedRequest(urbMessage);
+        }else{
+            uniformReliableBroadcast.request(urbMessage);
+        }
 
         // add pending count
         pendingNum.incrementAndGet();
