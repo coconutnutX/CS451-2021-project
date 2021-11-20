@@ -2,6 +2,7 @@ package main.java.cs451.pl;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import cs451.Host;
 import main.java.cs451.urb.UniformReliableBroadcast;
@@ -29,7 +30,7 @@ public class PerfectLink {
 
     private int myId;               // id of current process
     private Host myHost;            // host of current process
-    private int currentPSEQ;        // keep track of PSEQ of this process, should be unique in all processes
+    private AtomicInteger currentPSEQ;        // keep track of PSEQ of this process, should be unique in all processes
 
     private Thread socketServer;    // thread to listen to sockets
     private Thread messageResender; // thread to resend sockets periodically
@@ -43,7 +44,7 @@ public class PerfectLink {
     public void init(int myId, Host myHost) {
         this.myId = myId;
         this.myHost = myHost;
-        this.currentPSEQ = 1;
+        this.currentPSEQ = new AtomicInteger(1);
         this.deliverMap = new HashMap<Integer, HashSet<Integer>>();
         this.socketServer = new SocketServer(myId, myHost);
         this.messageResender = new MessageResender();
@@ -108,7 +109,7 @@ public class PerfectLink {
     }
 
     public int getAndIncreasePSEQ(){
-       return currentPSEQ++;
+       return currentPSEQ.getAndIncrement();
     }
 
 }

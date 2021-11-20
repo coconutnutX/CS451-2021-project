@@ -12,6 +12,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Module:
@@ -41,8 +43,11 @@ public class UniformReliableBroadcast {
     private PerfectLink perfectLink;      // base on perfect link
 
     private Map<Integer, Map<Integer, URBMessage>> pending;   // <CreaterId, <SEQ, URBMessage>>
-    private Map<Integer, Set<Integer>> delivered;             // <CreaterId, <SEQ>>
+    private Map<Integer, Map<Integer, Integer>> delivered;             // <CreaterId, <SEQ>>
 
+    private ConcurrentLinkedQueue<URBMessage> buffer;         // messages to send (control speed of sending message generated from current process)
+    private AtomicInteger pendingNum;                         // pending message number (can not use pending.size: 1.not removed when deliver 2.has relay messages)
+    private Thread urbMessageBufferSender;                    // thread to send URB messages
 
     public static UniformReliableBroadcast getInstance(){
         return instance;
@@ -52,8 +57,10 @@ public class UniformReliableBroadcast {
         this.myId = myId;
         this.myHost = myHost;
         this.currentURBSEQ = 1;
-        this.pending = new ConcurrentHashMap<>();
-        this.delivered = new ConcurrentHashMap<>();
+        this.pending = new HashMap<>();
+        this.delivered = new HashMap<>();
+        this.pendingNum = new AtomicInteger(0);
+        this.buffer = new ConcurrentLinkedQueue<>();
 
         // init PerfectLinks (Singleton)
         perfectLink = PerfectLink.getInstance();
@@ -62,8 +69,17 @@ public class UniformReliableBroadcast {
         // init pending and delivered map
         for(Host host: HostManager.getInstance().getAllHosts()){
             pending.put(host.getId(), new ConcurrentHashMap<>());
-            delivered.put(host.getId(), new HashSet<>());
+            delivered.put(host.getId(), new ConcurrentHashMap<>());
         }
+
+        // init URB message buffer sender
+        urbMessageBufferSender = new URBMessageBufferSender(buffer, pendingNum);
+        urbMessageBufferSender.start();
+    }
+
+    public void bufferedRequest(URBMessage urbMessage){
+        // use sliding window to reduce message flow
+        buffer.add(urbMessage);
     }
 
     /**
@@ -72,6 +88,7 @@ public class UniformReliableBroadcast {
     public void request(URBMessage urbMessage){
         // add message to pending
         addToPending(myId, urbMessage);
+        pendingNum.incrementAndGet();
 
         // log broadcast
         if(cs451.Constants.DEBUG_OUTPUT_URB){
@@ -83,6 +100,7 @@ public class UniformReliableBroadcast {
         for(Host desHost: HostManager.getInstance().getAllHosts()){
             // skip itself
             if(desHost.getId() == myId){
+                urbMessage.addAck(myId);
                 continue;
             }
 
@@ -139,7 +157,10 @@ public class UniformReliableBroadcast {
         }
 
         // add to delivered
-        delivered.get(urbMessage.getCreaterId()).add(urbMessage.getSEQ());
+        delivered.get(urbMessage.getCreaterId()).put(urbMessage.getSEQ(), 0);
+
+        // if deliver message send by current thread, decrease pending number
+        pendingNum.decrementAndGet();
 
         // call FIFO indication
         FIFOBroadcast.getInstance().indication(urbMessage);
@@ -162,7 +183,7 @@ public class UniformReliableBroadcast {
         }
 
         // 3.not delivered already
-        boolean cond2 = delivered.get(urbMessage.getCreaterId()).contains(urbMessage.getSEQ());
+        boolean cond2 = delivered.get(urbMessage.getCreaterId()).containsKey(urbMessage.getSEQ());
 
         if(cond2 == true){
             return false;
