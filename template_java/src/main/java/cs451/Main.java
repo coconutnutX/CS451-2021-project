@@ -80,6 +80,11 @@ public class Main {
             for(int i = 0; i < m; i++) {
                 FIFOMessage fifoMessage = new FIFOMessage(myId, fifoBroadcast.getAndIncreaseFIFOSEQ());
                 fifoBroadcast.request(fifoMessage);
+
+                // pause for a while after sending some messages
+                if(m % 64 == 0){
+                    Thread.sleep(500);
+                }
             }
         }
 

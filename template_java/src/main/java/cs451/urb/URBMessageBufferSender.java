@@ -1,6 +1,7 @@
 package main.java.cs451.urb;
 
 import cs451.Constants;
+import main.java.cs451.fifo.FIFOBroadcast;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -27,6 +28,7 @@ public class URBMessageBufferSender extends Thread{
         try{
             while(true){
                 int count = 0;
+                int pending = pendingNum.get();
                 // check if window is not full & has message in buffer
                 while(pendingNum.get() < windowSize && buffer.size() > 0){
                     // get a message from buffer and send it
@@ -44,7 +46,10 @@ public class URBMessageBufferSender extends Thread{
                 }
 
                 if(cs451.Constants.DEBUG_OUTPUT_URB_BUFFER){
-                    System.out.println("[urb buffer] send:" + count + " total send:" + totalCount + " gap:" + period);
+                    // System.out.println("[urb buffer] send:" + count + " total send:" + totalCount + " gap:" + period);
+
+                    // Debug output
+                    System.out.println("[urb buffer] send:" + count + " total send:" + totalCount +" pending:"+pending+ " gap:" + period);
                 }
 
                 round++;

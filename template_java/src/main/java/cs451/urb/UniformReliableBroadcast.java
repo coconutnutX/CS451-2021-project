@@ -160,7 +160,9 @@ public class UniformReliableBroadcast {
         delivered.get(urbMessage.getCreaterId()).put(urbMessage.getSEQ(), 0);
 
         // if deliver message send by current thread, decrease pending number
-        pendingNum.decrementAndGet();
+        if(urbMessage.getCreaterId() == myId){
+            pendingNum.decrementAndGet();
+        }
 
         // call FIFO indication
         FIFOBroadcast.getInstance().indication(urbMessage);
