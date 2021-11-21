@@ -7,9 +7,6 @@ import main.java.cs451.urb.URBMessage;
 import main.java.cs451.urb.UniformReliableBroadcast;
 import cs451.Host;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,8 +33,8 @@ public class FIFOBroadcast {
     private cs451.Host myHost;            // host of current process
     private int currentFIFOSEQ;           // keep track of FIFOSEQ of this process
 
-    private Map<Integer, PriorityQueue<FIFOMessage>> pending;     // <CreaterId, <FIFOMessage>>, smallest on top
-    private int[] next;                   // next SEQ from each process
+    private Map<Integer, Set<Integer>> pending;         // <CreaterId, <SEQ>>
+    private AtomicInteger[] next;                       // next SEQ from each process
 
     private UniformReliableBroadcast uniformReliableBroadcast;      // base on uniform reliable broadcast
 
@@ -54,9 +51,12 @@ public class FIFOBroadcast {
         this.pending = new ConcurrentHashMap<>();
         this.pendingNum = new AtomicInteger(0);
 
-        // init next, fill with 1s
-        this.next = new int[HostManager.getInstance().getTotalHostNumber()+1]; // host id from 1
-        Arrays.fill(next,1);
+        // init next, start with 1
+        int size = HostManager.getInstance().getTotalHostNumber() + 1; // host id from 1
+        next = new AtomicInteger[size];
+        for(int i =0; i<size; i++){
+            next[i] = new AtomicInteger(1);
+        }
 
         // init UniformReliableBroadcast (Singleton)
         uniformReliableBroadcast = UniformReliableBroadcast.getInstance();
@@ -64,12 +64,7 @@ public class FIFOBroadcast {
 
         // init pending map
         for(Host host: HostManager.getInstance().getAllHosts()){
-            pending.put(host.getId(), new PriorityQueue<>(new Comparator<FIFOMessage>() {
-                @Override
-                public int compare(FIFOMessage o1, FIFOMessage o2) {
-                    return o1.getSEQ() - o2.getSEQ();
-                }
-            }));
+            pending.put(host.getId(), new ConcurrentHashMap<>().newKeySet());
         }
     }
 
@@ -103,9 +98,7 @@ public class FIFOBroadcast {
      */
     public synchronized void indication(URBMessage urbMessage){
         // add to pending
-        PriorityQueue<FIFOMessage> queue = pending.get(urbMessage.getCreaterId());
-        FIFOMessage fifoMessage = new FIFOMessage(urbMessage.getCreaterId(), urbMessage.getSEQ());
-        queue.add(fifoMessage);
+        pending.get(urbMessage.getCreaterId()).add(urbMessage.getSEQ());
 
         // check if can deliver message from this creater
         checkDeliver(urbMessage.getCreaterId());
@@ -116,23 +109,17 @@ public class FIFOBroadcast {
     }
 
     public synchronized void checkDeliver(int createrId){
-        PriorityQueue<FIFOMessage> queue = pending.get(createrId);
-        while(!queue.isEmpty()){
-            // check if is next message
-            if(queue.peek().getSEQ() == next[createrId]){
-                deliver(queue.peek());
-                // update next
-                next[createrId]++;
-                // remove from queue
-                queue.remove();
-            }else{
-                break;
-            }
+        Set<Integer> currentPending = pending.get(createrId);
+        AtomicInteger currentNext = next[createrId];
+
+        // has key and removed, return true
+        while(currentPending.remove(currentNext)){
+            deliver(createrId, currentNext.getAndIncrement());
         }
     }
 
-    public void deliver(FIFOMessage fifoMessage){
-        String logStr = "d " + fifoMessage.getCreaterId() + " " + fifoMessage.getSEQ() +"\n";
+    public void deliver(int createrId, int SEQ){
+        String logStr = "d " + createrId + " " + SEQ +"\n";
         // log deliver
         if(cs451.Constants.DEBUG_OUTPUT_FIFO){
             System.out.print("[fifo]  "+logStr);
@@ -142,7 +129,7 @@ public class FIFOBroadcast {
         }
 
         // decrease pending number
-        if(fifoMessage.getCreaterId() == myId){
+        if(createrId == myId){
             pendingNum.decrementAndGet();
         }
     }
@@ -152,7 +139,7 @@ public class FIFOBroadcast {
     }
 
     public int getSelfDeliveredNum(){
-        return next[myId];
+        return next[myId].get();
     }
 
 }
