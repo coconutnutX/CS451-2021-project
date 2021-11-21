@@ -1,8 +1,6 @@
 package main.java.cs451.pl;
 
 import cs451.Host;
-import main.java.cs451.pl.PerfectLink;
-import main.java.cs451.pl.PerfectLinkMessage;
 
 import java.net.*;
 
@@ -13,9 +11,8 @@ public class SocketClient {
         try {
             // init
             datagramSocket = new DatagramSocket();
-            Host receiver = perfectLinkMessage.getReceiver();
-            InetSocketAddress address = new InetSocketAddress(receiver.getIp(), receiver.getPort());
-            byte[] sendData = (perfectLinkMessage.getMessage()).getBytes();
+            InetSocketAddress address = new InetSocketAddress(perfectLinkMessage.receiverIp, perfectLinkMessage.receiverPort);
+            byte[] sendData = (perfectLinkMessage.message).getBytes();
 
             // send
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address);
@@ -36,8 +33,8 @@ public class SocketClient {
         try {
             // init
             datagramSocket = new DatagramSocket();
-            Host host = perfectLinkMessage.getSender(); // here receiver is the original sender
-            InetSocketAddress address = new InetSocketAddress(host.getIp(), host.getPort());
+            // here receiver is the original sender
+            InetSocketAddress address = new InetSocketAddress(perfectLinkMessage.senderIp, perfectLinkMessage.senderPort);
             byte[] sendData = (perfectLinkMessage.getAckMessage()).getBytes();
 
             // send

@@ -30,7 +30,7 @@ public class SocketServerHandler extends Thread{
                 PerfectLink.getInstance().indication(perfectLinkMessage);
             }else{ // is ACK
                 // remove from track
-                MessageManager.getInstance().removeMessage(perfectLinkMessage.getPSEQ());
+                MessageManager.getInstance().removeMessage(perfectLinkMessage.PSEQ);
             }
         }
         catch (Exception e) {

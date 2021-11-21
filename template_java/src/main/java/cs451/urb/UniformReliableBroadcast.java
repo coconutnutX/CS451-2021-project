@@ -104,7 +104,7 @@ public class UniformReliableBroadcast {
             }
 
             // increase PSEQ each time, ensure unique PSEQ
-            PerfectLinkMessage perfectLinkMessage = new PerfectLinkMessage(desHost, myHost, myHost, SEQ, perfectLink.getAndIncreasePSEQ());
+            PerfectLinkMessage perfectLinkMessage = new PerfectLinkMessage(desHost, myId, myHost, SEQ, perfectLink.getAndIncreasePSEQ());
             perfectLink.request(perfectLinkMessage);
         }
     }
@@ -113,9 +113,8 @@ public class UniformReliableBroadcast {
      * Indication: < urb, Deliver | p, m >: Delivers a message m broadcast by process p.
      */
     public void indication(PerfectLinkMessage perfectLinkMessage){
-        Host creater = perfectLinkMessage.getCreater();
-        int createrId = creater.getId();
-        int SEQ = perfectLinkMessage.getSEQ();
+        int createrId = perfectLinkMessage.createrId;
+        int SEQ = perfectLinkMessage.SEQ;
 
         // already delivered, return
         if(delivered.get(createrId).contains(SEQ)){
@@ -142,13 +141,13 @@ public class UniformReliableBroadcast {
                 }
 
                 // increase PSEQ each time, ensure unique PSEQ
-                PerfectLinkMessage relayPerfectLinkMessage = new PerfectLinkMessage(desHost, creater, myHost, SEQ, perfectLink.getAndIncreasePSEQ());
+                PerfectLinkMessage relayPerfectLinkMessage = new PerfectLinkMessage(desHost, createrId, myHost, SEQ, perfectLink.getAndIncreasePSEQ());
                 perfectLink.request(relayPerfectLinkMessage);
             }
         }
 
         // add ack count
-        currentPending.get(SEQ).set(perfectLinkMessage.getSender().getId() - 1); // set id-1 bit to 1
+        currentPending.get(SEQ).set(perfectLinkMessage.senderId - 1); // set id-1 bit to 1
 
         // check if can deliver
         if(currentPending.get(SEQ).cardinality() > majorityNum){

@@ -14,27 +14,31 @@ public class PerfectLinkMessage {
     public boolean isACK;
     public boolean isResend;
 
-    private int SEQ;
-    private int PSEQ;
+    public int SEQ;
+    public int PSEQ;
 
-    private Host receiver;
-    private Host creater;
-    private Host sender;
+    public int createrId;
+    public int senderId;
+    public String senderIp;
+    public int senderPort;
+    public String receiverIp;
+    public int receiverPort;
 
-    private String message;
+    public String message;
 
     // construct from sender
-    public PerfectLinkMessage(Host receiver, Host creater, Host sender, int SEQ, int PSEQ){
+    public PerfectLinkMessage(Host receiver, int createrId, Host sender, int SEQ, int PSEQ){
         this.isACK = false;
         this.isResend = false;
-        this.receiver = receiver;
-        this.creater = creater;
-        this.sender = sender;
+        this.receiverIp = receiver.getIp();
+        this.receiverPort = receiver.getPort();
+        this.senderId = sender.getId();
+        this.createrId = createrId;
         this.SEQ = SEQ;
         this.PSEQ = PSEQ;
 
         // concatenate message string
-        this.message = "0 " + creater.getId() + " " + sender.getId() + " " + SEQ + " " + PSEQ;
+        this.message = "0 " + createrId + " " + senderId + " " + SEQ + " " + PSEQ;
     }
 
     // construct from receiver
@@ -48,11 +52,12 @@ public class PerfectLinkMessage {
             // when receive message
             this.isACK = false;
 
-            int createrId = Integer.parseInt(splits[1]);
-            int senderId = Integer.parseInt(splits[2]);
             // find host info
-            this.creater = HostManager.getInstance().getHostById(createrId);
-            this.sender = HostManager.getInstance().getHostById(senderId);
+            this.createrId = Integer.parseInt(splits[1]);
+            this.senderId = Integer.parseInt(splits[2]);
+            Host sender = HostManager.getInstance().getHostById(senderId);
+            this.senderIp = sender.getIp();
+            this.senderPort = sender.getPort();
             this.SEQ = Integer.parseInt(splits[3]);
             this.PSEQ = Integer.parseInt(splits[4].trim()); // have to trim at the end to avoid parsing error
         }else{
@@ -67,42 +72,6 @@ public class PerfectLinkMessage {
     // construct ACK message
     public String getAckMessage(){
         return "1 " + PSEQ;
-    }
-
-    public void setSEQ(int SEQ){
-        this.SEQ = SEQ;
-    }
-
-    public void setPSEQ(int PSEQ){
-        this.PSEQ = PSEQ;
-    }
-
-    public int getSEQ(){
-        return SEQ;
-    }
-
-    public int getPSEQ(){
-        return PSEQ;
-    }
-
-    public String getMessage(){
-        return message;
-    }
-
-    public Host getReceiver(){
-        return receiver;
-    }
-
-    public Host getSender(){
-        return sender;
-    }
-
-    public Host getCreater(){
-        return creater;
-    }
-
-    public int getCreaterId() {
-        return creater.getId();
     }
 
 }

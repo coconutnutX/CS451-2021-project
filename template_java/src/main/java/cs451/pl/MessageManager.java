@@ -21,7 +21,7 @@ public class MessageManager {
     }
 
     public void addMessage(PerfectLinkMessage perfectLinkMessage){
-        messageSendMap.put(perfectLinkMessage.getPSEQ(), perfectLinkMessage);
+        messageSendMap.put(perfectLinkMessage.PSEQ, perfectLinkMessage);
     }
 
     public void removeMessage(int PSEQ){

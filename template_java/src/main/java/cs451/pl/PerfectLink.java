@@ -68,7 +68,7 @@ public class PerfectLink {
     public void request(PerfectLinkMessage perfectLinkMessage){
         // log info
         if(!perfectLinkMessage.isResend){
-            String logStr = "b " + perfectLinkMessage.getSEQ() + "\n";
+            String logStr = "b " + perfectLinkMessage.SEQ + "\n";
             // PerfectLink.getInstance().addLogBuffser(logStr);
             if(cs451.Constants.DEBUG_OUTPUT_PL){
                 System.out.print("[pl]   "+logStr);
@@ -90,13 +90,13 @@ public class PerfectLink {
 
     // deliver message
     public void indication(PerfectLinkMessage perfectLinkMessage){
-        int senderId = perfectLinkMessage.getSender().getId();
-        int PSEQ = perfectLinkMessage.getPSEQ();
+        int senderId = perfectLinkMessage.senderId;
+        int PSEQ = perfectLinkMessage.PSEQ;
 
         // deliver if not already delivered. don't exist, return null
         if(delivered.get(senderId).putIfAbsent(PSEQ, 0) == null){
             // delivered a message with sequence number from process number
-            String logStr = "d " + perfectLinkMessage.getSender().getId() + " " + perfectLinkMessage.getSEQ() + "\n";
+            String logStr = "d " + perfectLinkMessage.senderId + " " + perfectLinkMessage.SEQ + "\n";
             // addLogBuffer(logStr);
             if(cs451.Constants.DEBUG_OUTPUT_PL){
                 System.out.print("[pl]   "+logStr);
