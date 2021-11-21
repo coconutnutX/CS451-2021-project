@@ -112,23 +112,24 @@ public class FIFOBroadcast {
 
         // has key and removed, return true
         while(currentPending.remove(currentNext.get())){
-            deliver(createrId, currentNext.getAndIncrement());
-        }
-    }
+            // now currentNext still has old value, no other process can remove
+            String logStr = "d " + createrId + " " + currentNext.get() +"\n";
 
-    public void deliver(int createrId, int SEQ){
-        String logStr = "d " + createrId + " " + SEQ +"\n";
-        // log deliver
-        if(cs451.Constants.DEBUG_OUTPUT_FIFO){
-            System.out.print("[fifo]  "+logStr);
-        }
-        if(cs451.Constants.WRITE_LOG_FIFO){
-            OutputManager.getInstance().addLogBuffer(logStr);
-        }
+            // log deliver
+            if(cs451.Constants.DEBUG_OUTPUT_FIFO){
+                System.out.print("[fifo]  "+logStr);
+            }
+            if(cs451.Constants.WRITE_LOG_FIFO){
+                OutputManager.getInstance().addLogBuffer(logStr);
+            }
 
-        // decrease pending number
-        if(createrId == myId){
-            pendingNum.decrementAndGet();
+            // decrease pending number
+            if(createrId == myId){
+                pendingNum.decrementAndGet();
+            }
+
+            // increment concurrentNext, could compete to enter
+            currentNext.getAndIncrement();
         }
     }
 
