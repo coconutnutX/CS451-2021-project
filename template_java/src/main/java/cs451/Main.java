@@ -82,8 +82,7 @@ public class Main {
                 int pending = fifoBroadcast.getPendingNum();
                 if(pending < 128){
                     // send messsage normally
-                    FIFOMessage fifoMessage = new FIFOMessage(myId, fifoBroadcast.getAndIncreaseFIFOSEQ());
-                    fifoBroadcast.request(fifoMessage);
+                    fifoBroadcast.request(myId, fifoBroadcast.getAndIncreaseFIFOSEQ());
                 }else{
                     // don't send
                     i--;

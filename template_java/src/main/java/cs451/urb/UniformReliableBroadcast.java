@@ -75,7 +75,8 @@ public class UniformReliableBroadcast {
         }
     }
 
-    public void bufferedRequest(URBMessage urbMessage){
+    public void bufferedRequest(int createrId, int SEQ){
+        URBMessage urbMessage = new URBMessage(createrId, SEQ);
         // use sliding window to reduce message flow
         buffer.add(urbMessage);
     }
@@ -83,16 +84,15 @@ public class UniformReliableBroadcast {
     /**
      * Request: < urb, Broadcast | m >: Broadcasts a message m to all processes.
      */
-    public void request(URBMessage urbMessage){
+    public void request(int createrId, int SEQ){
         // add message to pending, and add ack count
-        int SEQ = urbMessage.getSEQ();
         Map<Integer, BitSet> currentPending = pending.get(myId);
         currentPending.putIfAbsent(SEQ, new BitSet());
         currentPending.get(SEQ).set(myId - 1); // set id-1 bit to 1
 
         // log broadcast
         if(cs451.Constants.DEBUG_OUTPUT_URB){
-            String logStr = "b " + urbMessage.getSEQ() + "\n";
+            String logStr = "b " + SEQ + "\n";
             System.out.print("[urb]  "+logStr);
         }
 
@@ -100,12 +100,11 @@ public class UniformReliableBroadcast {
         for(Host desHost: HostManager.getInstance().getAllHosts()){
             // skip itself
             if(desHost.getId() == myId){
-                urbMessage.addAck(myId);
                 continue;
             }
 
             // increase PSEQ each time, ensure unique PSEQ
-            PerfectLinkMessage perfectLinkMessage = new PerfectLinkMessage(desHost, myHost, myHost, urbMessage.getSEQ(), perfectLink.getAndIncreasePSEQ());
+            PerfectLinkMessage perfectLinkMessage = new PerfectLinkMessage(desHost, myHost, myHost, SEQ, perfectLink.getAndIncreasePSEQ());
             perfectLink.request(perfectLinkMessage);
         }
     }
@@ -122,7 +121,6 @@ public class UniformReliableBroadcast {
         if(delivered.get(createrId).contains(SEQ)){
             return;
         }
-
 
         Map<Integer, BitSet> currentPending = pending.get(createrId);
         // not in pending, relay
@@ -172,8 +170,7 @@ public class UniformReliableBroadcast {
         pending.get(createrId).remove(SEQ);
 
         // call FIFO indication
-        URBMessage urbMessage = new URBMessage(createrId, SEQ);
-        FIFOBroadcast.getInstance().indication(urbMessage);
+        FIFOBroadcast.getInstance().indication(createrId, SEQ);
     }
 
     public int getSelfDeliveredNum(){

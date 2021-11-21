@@ -33,7 +33,7 @@ public class URBMessageBufferSender extends Thread{
                     for(int i=0; i<canSend; i++){
                         // get a message from buffer and send it
                         URBMessage urbMessage = buffer.remove();
-                        UniformReliableBroadcast.getInstance().request(urbMessage);
+                        UniformReliableBroadcast.getInstance().request(urbMessage.getCreaterId(), urbMessage.getSEQ());
                         // add pending number
                         totalCount++;
                     }

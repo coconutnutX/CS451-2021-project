@@ -11,15 +11,6 @@ public class URBMessage {
     public URBMessage(int createrId, int SEQ){
         this.createrId = createrId;
         this.SEQ = SEQ;
-        this.ackSet = new HashSet<>();
-    }
-
-    public void addAck(int senderId){
-        ackSet.add(senderId);
-    }
-
-    public int ackNumber(){
-        return ackSet.size();
     }
 
     public int getSEQ(){

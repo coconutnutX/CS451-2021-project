@@ -71,8 +71,8 @@ public class FIFOBroadcast {
     /**
      * Request: ⟨ frb, Broadcast | m ⟩: Broadcasts a message m to all processes.
      */
-    public void request(FIFOMessage fifoMessage){
-        String logStr = "b " + fifoMessage.getSEQ() + "\n";
+    public void request(int createrId, int SEQ){
+        String logStr = "b " + SEQ + "\n";
         // log broadcast
         if(cs451.Constants.DEBUG_OUTPUT_FIFO){
             System.out.print("[fifo]  "+logStr);
@@ -82,11 +82,10 @@ public class FIFOBroadcast {
         }
 
         // call urb request
-        URBMessage urbMessage = new URBMessage(fifoMessage.getCreaterId(), fifoMessage.getSEQ());
         if(Constants.ACTIVATE_URB_BUFFER){
-            uniformReliableBroadcast.bufferedRequest(urbMessage);
+            uniformReliableBroadcast.bufferedRequest(createrId, SEQ);
         }else{
-            uniformReliableBroadcast.request(urbMessage);
+            uniformReliableBroadcast.request(createrId, SEQ);
         }
 
         // add pending count
@@ -96,24 +95,24 @@ public class FIFOBroadcast {
     /**
      * Indication: ⟨ frb, Deliver | p, m ⟩: Delivers a message m broadcast by process p.
      */
-    public synchronized void indication(URBMessage urbMessage){
+    public void indication(int createrId, int SEQ){
         // add to pending
-        pending.get(urbMessage.getCreaterId()).add(urbMessage.getSEQ());
+        pending.get(createrId).add(SEQ);
 
         // check if can deliver message from this creater
-        checkDeliver(urbMessage.getCreaterId());
+        checkDeliver(createrId);
     }
 
     public int getAndIncreaseFIFOSEQ(){
         return currentFIFOSEQ++;
     }
 
-    public synchronized void checkDeliver(int createrId){
+    public void checkDeliver(int createrId){
         Set<Integer> currentPending = pending.get(createrId);
         AtomicInteger currentNext = next[createrId];
 
         // has key and removed, return true
-        while(currentPending.remove(currentNext)){
+        while(currentPending.remove(currentNext.get())){
             deliver(createrId, currentNext.getAndIncrement());
         }
     }
