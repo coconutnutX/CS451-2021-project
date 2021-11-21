@@ -1,10 +1,8 @@
 package main.java.cs451.urb;
 
-import cs451.Constants;
 import main.java.cs451.fifo.FIFOBroadcast;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class URBMessageBufferSender extends Thread{
 
