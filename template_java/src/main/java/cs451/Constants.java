@@ -22,9 +22,11 @@ public class Constants {
     public static final int RESEND_PERIOD = 300;
 
     // urb buffered send check period (ms)
+    public static final int PL_THREADPOOL_SIZE = 4;
     public static final int URB_BUFFERED_SEND_PERIOD = 500;
     public static final int URB_BUFFERED_WINDOW_SIZE = 256;
     public static final boolean ACTIVATE_URB_BUFFER = false;
+    public static final int FIFO_MSG_THRESHOLD = 128;
 
     // debug output
     public static final boolean DEBUG_OUTPUT_PL = false;

@@ -78,7 +78,7 @@ public class Main {
             // m defines how many messages each process should broadcast
             for(int i = 0; i < m; i++) {
                 int pending = fifoBroadcast.getPendingNum();
-                if(pending < 128){
+                if(pending < cs451.Constants.FIFO_MSG_THRESHOLD){
                     // send messsage normally
                     fifoBroadcast.request(myId, fifoBroadcast.getAndIncreaseFIFOSEQ());
                 }else{
