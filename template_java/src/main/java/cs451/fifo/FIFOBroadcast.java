@@ -3,7 +3,6 @@ package main.java.cs451.fifo;
 import cs451.Constants;
 import main.java.cs451.tool.HostManager;
 import main.java.cs451.tool.OutputManager;
-import main.java.cs451.urb.URBMessage;
 import main.java.cs451.urb.UniformReliableBroadcast;
 import cs451.Host;
 
