@@ -2,9 +2,12 @@ package main.java.cs451.pl;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import cs451.Host;
+import main.java.cs451.tool.HostManager;
 import main.java.cs451.urb.UniformReliableBroadcast;
 
 /***
@@ -35,7 +38,8 @@ public class PerfectLink {
     private Thread socketServer;    // thread to listen to sockets
     private Thread messageResender; // thread to resend sockets periodically
 
-    private HashMap<Integer, HashSet<Integer>> deliverMap; // messages delivered, <sender ID, PSEQ>
+    // private HashMap<Integer, HashSet<Integer>> deliverMap; // messages delivered, <sender ID, PSEQ>
+    private HashMap<Integer, Set<Integer>> delivered; // messages delivered, <sender ID, <PSEQ>>
 
     public static PerfectLink getInstance(){
         return instance;
@@ -45,9 +49,15 @@ public class PerfectLink {
         this.myId = myId;
         this.myHost = myHost;
         this.currentPSEQ = new AtomicInteger(1);
-        this.deliverMap = new HashMap<Integer, HashSet<Integer>>();
+        // this.deliverMap = new HashMap<Integer, HashSet<Integer>>();
         this.socketServer = new SocketServer(myId, myHost);
         this.messageResender = new MessageResender();
+        this.delivered = new HashMap<>();
+
+        // init delivered
+        for(Host host: HostManager.getInstance().getAllHosts()){
+            delivered.put(host.getId(), new ConcurrentHashMap<>().newKeySet());
+        }
 
         // start listen to port
         socketServer.start();
@@ -88,14 +98,15 @@ public class PerfectLink {
         int PSEQ = perfectLinkMessage.getPSEQ();
 
         // init set if don't exist
-        if(!deliverMap.containsKey(senderId)){
-            deliverMap.put(senderId, new HashSet<Integer>());
-        }
+//        if(!deliverMap.containsKey(senderId)){
+//            deliverMap.put(senderId, new HashSet<Integer>());
+//        }
 
         // deliver if not already delivered
-        if(!deliverMap.get(senderId).contains(PSEQ)){
+        // if(!deliverMap.get(senderId).contains(PSEQ)){
+        if(!delivered.get(senderId).contains(PSEQ)){
 
-            deliverMap.get(senderId).add(PSEQ);
+            delivered.get(senderId).add(PSEQ);
 
             // delivered a message with sequence number from process number
             String logStr = "d " + perfectLinkMessage.getSender().getId() + " " + perfectLinkMessage.getSEQ() + "\n";

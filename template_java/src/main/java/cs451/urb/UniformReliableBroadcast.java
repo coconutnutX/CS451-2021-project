@@ -43,7 +43,7 @@ public class UniformReliableBroadcast {
     private PerfectLink perfectLink;      // base on perfect link
 
     private Map<Integer, Map<Integer, URBMessage>> pending;   // <CreaterId, <SEQ, URBMessage>>
-    private Map<Integer, Map<Integer, Integer>> delivered;    // <CreaterId, <SEQ>>
+    private Map<Integer, Set<Integer>> delivered;    // <CreaterId, <SEQ>>
 
     private ConcurrentLinkedQueue<URBMessage> buffer;         // messages to send (control speed of sending message generated from current process)
     private Thread urbMessageBufferSender;                    // thread to send URB messages
@@ -67,7 +67,7 @@ public class UniformReliableBroadcast {
         // init pending and delivered map
         for(Host host: HostManager.getInstance().getAllHosts()){
             pending.put(host.getId(), new ConcurrentHashMap<>());
-            delivered.put(host.getId(), new ConcurrentHashMap<>());
+            delivered.put(host.getId(), new ConcurrentHashMap<>().newKeySet());
         }
 
         if(cs451.Constants.ACTIVATE_URB_BUFFER){
@@ -117,12 +117,12 @@ public class UniformReliableBroadcast {
         int SEQ = perfectLinkMessage.getSEQ();
 
         // already delivered, return
-        if(isInDelivered(creater.getId(), SEQ)){
+        if(delivered.get(creater.getId()).contains(SEQ)){
             return;
         }
 
         // not in pending, relay
-        if(!isInPending(creater.getId(), SEQ)){
+        if(!pending.get(creater.getId()).containsKey(SEQ)){
             // log broadcast
             if(cs451.Constants.DEBUG_OUTPUT_URB_RELAY){
                 String logStr = "b " + SEQ + "\n";
@@ -161,7 +161,7 @@ public class UniformReliableBroadcast {
         }
 
         // add to delivered
-        delivered.get(urbMessage.getCreaterId()).put(urbMessage.getSEQ(), 0);
+        delivered.get(urbMessage.getCreaterId()).add(urbMessage.getSEQ());
 
         // remove from pending
         pending.get(urbMessage.getCreaterId()).remove(urbMessage.getSEQ());
@@ -187,7 +187,7 @@ public class UniformReliableBroadcast {
         }
 
         // 3.not delivered already
-        boolean cond2 = delivered.get(urbMessage.getCreaterId()).containsKey(urbMessage.getSEQ());
+        boolean cond2 = delivered.get(urbMessage.getCreaterId()).contains(urbMessage.getSEQ());
 
         if(cond2 == true){
             return false;
@@ -198,14 +198,6 @@ public class UniformReliableBroadcast {
 
     public void addToPending(int createrId, URBMessage urbMessage){
         pending.get(createrId).put(urbMessage.getSEQ(), urbMessage);
-    }
-
-    public boolean isInPending(int createrId, int SEQ){
-        return pending.get(createrId).containsKey(SEQ);
-    }
-
-    public boolean isInDelivered(int createrId, int SEQ){
-        return delivered.get(createrId).containsKey(SEQ);
     }
 
     public URBMessage getOrCreateURBMessageInPending(int createrId, int SEQ){
