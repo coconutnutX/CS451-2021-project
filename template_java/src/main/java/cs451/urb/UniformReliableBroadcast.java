@@ -7,13 +7,9 @@ import main.java.cs451.pl.PerfectLinkMessage;
 
 import cs451.Host;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Module:
@@ -38,12 +34,13 @@ public class UniformReliableBroadcast {
 
     private int myId;                     // id of current process
     private cs451.Host myHost;            // host of current process
-    private int currentURBSEQ;            // keep track of URBSEQ of this process, should be unique in all processes
 
     private PerfectLink perfectLink;      // base on perfect link
 
-    private Map<Integer, Map<Integer, URBMessage>> pending;   // <CreaterId, <SEQ, URBMessage>>
-    private Map<Integer, Set<Integer>> delivered;    // <CreaterId, <SEQ>>
+    private Map<Integer, Map<Integer, BitSet>> pending;   // <CreaterId, <SEQ, URBMessage>>
+    private Map<Integer, Set<Integer>> delivered;         // <CreaterId, <SEQ>>
+    private int bitSetSize;
+    private int majorityNum;
 
     private ConcurrentLinkedQueue<URBMessage> buffer;         // messages to send (control speed of sending message generated from current process)
     private Thread urbMessageBufferSender;                    // thread to send URB messages
@@ -55,10 +52,11 @@ public class UniformReliableBroadcast {
     public void init(int myId, cs451.Host myHost){
         this.myId = myId;
         this.myHost = myHost;
-        this.currentURBSEQ = 1;
         this.pending = new HashMap<>();
         this.delivered = new HashMap<>();
         this.buffer = new ConcurrentLinkedQueue<>();
+        this.bitSetSize = HostManager.getInstance().getTotalHostNumber();
+        this.majorityNum = bitSetSize / 2;
 
         // init PerfectLinks (Singleton)
         perfectLink = PerfectLink.getInstance();
@@ -86,8 +84,11 @@ public class UniformReliableBroadcast {
      * Request: < urb, Broadcast | m >: Broadcasts a message m to all processes.
      */
     public void request(URBMessage urbMessage){
-        // add message to pending
-        addToPending(myId, urbMessage);
+        // add message to pending, and add ack count
+        int SEQ = urbMessage.getSEQ();
+        Map<Integer, BitSet> currentPending = pending.get(myId);
+        currentPending.putIfAbsent(SEQ, new BitSet());
+        currentPending.get(SEQ).set(myId - 1); // set id-1 bit to 1
 
         // log broadcast
         if(cs451.Constants.DEBUG_OUTPUT_URB){
@@ -114,15 +115,21 @@ public class UniformReliableBroadcast {
      */
     public void indication(PerfectLinkMessage perfectLinkMessage){
         Host creater = perfectLinkMessage.getCreater();
+        int createrId = creater.getId();
         int SEQ = perfectLinkMessage.getSEQ();
 
         // already delivered, return
-        if(delivered.get(creater.getId()).contains(SEQ)){
+        if(delivered.get(createrId).contains(SEQ)){
             return;
         }
 
+
+        Map<Integer, BitSet> currentPending = pending.get(createrId);
         // not in pending, relay
-        if(!pending.get(creater.getId()).containsKey(SEQ)){
+        if(!currentPending.containsKey(SEQ)){
+            // new ack count
+            currentPending.putIfAbsent(SEQ, new BitSet());
+
             // log broadcast
             if(cs451.Constants.DEBUG_OUTPUT_URB_RELAY){
                 String logStr = "b " + SEQ + "\n";
@@ -142,75 +149,31 @@ public class UniformReliableBroadcast {
             }
         }
 
-        // get or add to pending
-        URBMessage urbMessage = getOrCreateURBMessageInPending(creater.getId(), SEQ);
-        // add ack
-        urbMessage.addAck(perfectLinkMessage.getSender().getId());
+        // add ack count
+        currentPending.get(SEQ).set(perfectLinkMessage.getSender().getId() - 1); // set id-1 bit to 1
 
         // check if can deliver
-        if(canDeliver(urbMessage)){
-            deliver(urbMessage);
+        if(currentPending.get(SEQ).cardinality() > majorityNum){
+            deliver(createrId, SEQ);
         }
     }
 
-    public void deliver(URBMessage urbMessage){
+    public void deliver(int createrId, int SEQ){
         // log deliver
         if(cs451.Constants.DEBUG_OUTPUT_URB){
-            String logStr = "d " + urbMessage.getCreaterId() + " " + urbMessage.getSEQ() + "\n";
+            String logStr = "d " + createrId + " " + SEQ + "\n";
             System.out.print("[urb]  "+logStr);
         }
 
         // add to delivered
-        delivered.get(urbMessage.getCreaterId()).add(urbMessage.getSEQ());
+        delivered.get(createrId).add(SEQ);
 
         // remove from pending
-        pending.get(urbMessage.getCreaterId()).remove(urbMessage.getSEQ());
+        pending.get(createrId).remove(SEQ);
 
         // call FIFO indication
+        URBMessage urbMessage = new URBMessage(createrId, SEQ);
         FIFOBroadcast.getInstance().indication(urbMessage);
-    }
-
-    public int getAndIncreaseURBSEQ(){
-        return currentURBSEQ++;
-    }
-
-    public boolean canDeliver(URBMessage urbMessage){
-        // 1.message is in pending
-
-        // 2.ack > N/2
-        int ackNum = urbMessage.ackNumber();
-        int majorityNum = HostManager.getInstance().getMajorityNumber();
-        boolean cond1 =  ackNum > majorityNum;
-
-        if(cond1 == false){
-            return false;
-        }
-
-        // 3.not delivered already
-        boolean cond2 = delivered.get(urbMessage.getCreaterId()).contains(urbMessage.getSEQ());
-
-        if(cond2 == true){
-            return false;
-        }
-
-        return true;
-    }
-
-    public void addToPending(int createrId, URBMessage urbMessage){
-        pending.get(createrId).put(urbMessage.getSEQ(), urbMessage);
-    }
-
-    public URBMessage getOrCreateURBMessageInPending(int createrId, int SEQ){
-        Map<Integer, URBMessage> createrPending = pending.get(createrId);
-        if(!createrPending.containsKey(SEQ)){
-            // construct URB msg
-            URBMessage urbMessage = new URBMessage(createrId, SEQ);
-
-            // add to pending
-            createrPending.put(SEQ, urbMessage);
-        }
-
-        return createrPending.get(SEQ);
     }
 
     public int getSelfDeliveredNum(){

@@ -50,9 +50,9 @@ public class HostManager {
         return hostMap.values();
     }
 
-    public int getMajorityNumber(){
-        return hostMap.size() / 2;
-    }
+//    public int getMajorityNumber(){
+//        return hostMap.size() / 2;
+//    }
 
     public int getTotalHostNumber(){
         return hostMap.size();
