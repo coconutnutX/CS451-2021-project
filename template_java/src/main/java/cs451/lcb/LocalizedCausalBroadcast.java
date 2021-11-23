@@ -9,7 +9,6 @@ import cs451.Host;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -27,23 +26,34 @@ public class LocalizedCausalBroadcast {
     private int currentSEQ;               // keep track of SEQ of this process
     private int totalHost;
 
-    private List<Integer> vectorClock;            // vector clock of dependency
-    private String vectorClockStr;                // string representation
-    private Map<Integer, ConcurrentHashMap<String, Integer>> pending;         // <CreaterId, <vectorClock, SEQ>>
+    private boolean[] depend;             // depend[i] == true -> current process depend on i
+
+    private AtomicInteger[] vectorClock;            // delivered message vector clock
+    private AtomicInteger[] dependVectorClock;      // dependency associated with broadcast message
+    private String vectorClockStr;        // concat with '-'
+    private String dependVectorClockStr;  // concat with '-'
+    private Map<Integer, ConcurrentHashMap<Integer, URBMessage>> pending;         // <CreaterId, <SEQ, message>>
 
     private UniformReliableBroadcast uniformReliableBroadcast;      // base on uniform reliable broadcast
 
     private AtomicInteger pendingNum;
 
-    public void init(int myId, Host myHost){
+    public void init(int myId, Host myHost, boolean[] depend){
         this.myId = myId;
         this.myHost = myHost;
+        this.depend = depend;
         this.currentSEQ = 1;
         this.totalHost = HostManager.getInstance().getTotalHostNumber();
         this.pending = new ConcurrentHashMap<>();
         this.pendingNum = new AtomicInteger(0);
-        Integer[] initialClock = new Integer[totalHost];
-        this.vectorClock = Arrays.asList(initialClock);
+        this.vectorClock = new AtomicInteger[totalHost];
+        this.dependVectorClock = new AtomicInteger[totalHost];
+        for(int i=0;i<totalHost;i++){
+            vectorClock[i] = new AtomicInteger(0);
+            dependVectorClock[i] = new AtomicInteger(0);
+        }
+        buildVectorClockStr();
+        buildDependVectorClockStr();
 
         // init UniformReliableBroadcast (Singleton)
         uniformReliableBroadcast = UniformReliableBroadcast.getInstance();
@@ -62,13 +72,16 @@ public class LocalizedCausalBroadcast {
         String logStr = "b " + SEQ + "\n";
         // log broadcast
         if(cs451.Constants.DEBUG_OUTPUT_LCB){
-            System.out.print("[lcb]   "+logStr);
+            System.out.print("[lcb]["+vectorClockStr+"]   b " + SEQ + " "+dependVectorClockStr+"\n");
         }
         if(cs451.Constants.WRITE_LOG_LCB){
             OutputManager.getInstance().addLogBuffer(logStr);
         }
 
-        uniformReliableBroadcast.request(new URBMessage(createrId, SEQ, vectorClockStr));
+        uniformReliableBroadcast.request(new URBMessage(createrId, SEQ, dependVectorClockStr));
+
+        // add self vector clock
+        updateDependVectorClock(myId);
 
         // add pending count
         pendingNum.incrementAndGet();
@@ -78,17 +91,79 @@ public class LocalizedCausalBroadcast {
      * Indication: ⟨ rcb, Deliver | p, m ⟩: Delivers a message m broadcast by process p.
      */
     public void indication(URBMessage urbMessage){
-        System.out.println("[lcb indi]"+urbMessage.SEQ+" "+urbMessage.vectorClockStr);
         // add to pending
-//        pending.get(createrId).add(SEQ);
+        pending.get(urbMessage.createrId).put(urbMessage.SEQ, urbMessage);
 
         // check if can deliver message from this creater
+        checkDeliver(urbMessage.createrId);
     }
 
-    private void updateVectorClock() {
+    public void checkDeliver(int createrId){
+        ConcurrentHashMap<Integer, URBMessage> currentPending = pending.get(createrId);
 
-        // update vector clock string
-        vectorClockStr = vectorClock.stream().map(String::valueOf).collect(Collectors.joining("-"));
+        // traverse according to SEQ of this creator
+        while(currentPending.containsKey(vectorClock[createrId-1].get()+1)){
+            URBMessage urbMessage = currentPending.get(vectorClock[createrId-1].get()+1);
+            // check dependency
+            int i;
+            boolean flag = true;
+            for(i=1; i<=totalHost; i++){
+                if(vectorClock[i-1].get() < urbMessage.vectorClock[i-1]){
+                    flag = false;
+                    break;
+                }
+            }
+
+            System.out.print("[lcb]["+vectorClockStr+"]   c " + urbMessage.createrId + " " + urbMessage.SEQ + " "+urbMessage.vectorClockStr+" "+flag+"\n");
+
+            if(flag==false){
+                // has dependency
+                System.out.println("depend on "+i);
+                // check if dependency can be solved
+                checkDeliver(i);
+            }else{
+                deliver(urbMessage);
+            }
+        }
+    }
+
+    public void deliver(URBMessage urbMessage){
+        String logStr = "d " + urbMessage.createrId + " " + urbMessage.SEQ + "\n";
+        // log broadcast
+        if(cs451.Constants.DEBUG_OUTPUT_LCB){
+            System.out.print("[lcb]["+vectorClockStr+"]   d " + urbMessage.createrId + " " + urbMessage.SEQ + " "+urbMessage.vectorClockStr+"\n");
+        }
+        if(cs451.Constants.WRITE_LOG_LCB){
+            OutputManager.getInstance().addLogBuffer(logStr);
+        }
+
+        // update vector clock
+        updateVectorClock(urbMessage.createrId);
+
+        // if has dependency, update dependency vector clock
+        if(depend[urbMessage.createrId]){
+            updateDependVectorClock(urbMessage.createrId);
+        }
+    }
+
+    private void updateVectorClock(int createrId) {
+        vectorClock[createrId-1].getAndIncrement();    // id start from 1
+        buildVectorClockStr();
+    }
+
+    private void updateDependVectorClock(int createrId) {
+        dependVectorClock[createrId-1].getAndIncrement(); // id start from 1
+        buildDependVectorClockStr();
+    }
+
+    private void buildVectorClockStr(){
+        String str = Arrays.toString(vectorClock).replaceAll(",\\s+", "-");
+        vectorClockStr = str.substring(1,str.length()-1);
+    }
+
+    private void buildDependVectorClockStr(){
+        String str = Arrays.toString(dependVectorClock).replaceAll(",\\s+", "-");
+        dependVectorClockStr = str.substring(1,str.length()-1);
     }
 
     public int getAndIncreaseSEQ(){

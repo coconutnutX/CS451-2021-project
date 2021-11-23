@@ -1,5 +1,6 @@
 package cs451;
 
+import javax.lang.model.type.ArrayType;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -16,6 +17,7 @@ public class ConfigParser {
 
     private List<int[]> messageConfigList0 = new ArrayList<>();
     private List<Integer> messageConfigList1 = new ArrayList<>();
+    private List<String[]> messageConfigList2 = new ArrayList<>();
 
     public ConfigParser(int configType){
         this.configType = configType;
@@ -61,11 +63,12 @@ public class ConfigParser {
 
                 }else if(configType == 1){
                     // config 1: FIFO Broadcast application
-
                     int newConfig = Integer.parseInt(line);
                     messageConfigList1.add(newConfig);
                 }else{
                     // config 2: Localized Causal Broadcast
+                    String[] splits = line.split(SPACES_REGEX);
+                    messageConfigList2.add(splits);
                 }
 
 
@@ -89,6 +92,10 @@ public class ConfigParser {
 
     public List<Integer> getMessageConfigList1() {
         return messageConfigList1;
+    }
+
+    public List<String[]> getMessageConfigList2() {
+        return messageConfigList2;
     }
 
 }

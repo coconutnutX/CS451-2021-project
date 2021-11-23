@@ -1,8 +1,13 @@
 package cs451;
 
 import main.java.cs451.fifo.FIFOBroadcast;
+import main.java.cs451.lcb.LocalizedCausalBroadcast;
+import main.java.cs451.tool.ClientThread;
 import main.java.cs451.tool.HostManager;
 import main.java.cs451.tool.OutputManager;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class Main {
 
@@ -26,7 +31,7 @@ public class Main {
     }
 
     public static void main(String[] args) throws InterruptedException {
-        int configType = 1;
+        int configType = 2;
         Parser parser = new Parser(args, configType);
         parser.parse();
 
@@ -68,28 +73,45 @@ public class Main {
         HostManager hostManager = HostManager.getInstance();
         Host myHost = hostManager.init(parser.hosts(), myId);
 
-        // init FIFOBroadcast (Singleton)
-        FIFOBroadcast fifoBroadcast = FIFOBroadcast.getInstance();
-        fifoBroadcast.init(myId, myHost);
+        // parse config
+        List<String[]> configs = parser.getMessageConfigList2();
+        int m = Integer.parseInt(configs.get(0)[0]);
+        System.out.println("Messages to broadcast: "+m);
+
+        // parse dependency config
+        String[] dependencyConfig = configs.get(myId);
+        boolean[] depend = new boolean[hostManager.getTotalHostNumber()+1];
+        for(int i=1; i<dependencyConfig.length; i++){
+            int id = Integer.parseInt(dependencyConfig[i]);
+            depend[id] = true;
+        }
+        System.out.println("Dependency of "+myId+": "+ Arrays.toString(depend));
+
+        // init LocalizedCausalBroadcast (Singleton)
+        LocalizedCausalBroadcast localizedCausalBroadcast = LocalizedCausalBroadcast.getInstance();
+        localizedCausalBroadcast.init(myId, myHost, depend);
 
         System.out.println("Broadcasting and delivering messages...\n");
 
-        for(int m : parser.getMessageConfigList1()){
-            // m defines how many messages each process should broadcast
-            for(int i = 0; i < m; i++) {
-                int pending = fifoBroadcast.getPendingNum();
-                if(pending < cs451.Constants.FIFO_MSG_THRESHOLD){
-                    // send messsage normally
-                    fifoBroadcast.request(myId, fifoBroadcast.getAndIncreaseFIFOSEQ());
-                }else{
-                    // don't send
-                    i--;
+        ClientThread clientThread = new ClientThread(myId, m);
+        clientThread.run();
 
-                    // System.out.println("[urb #d]"+ UniformReliableBroadcast.getInstance().getSelfDeliveredNum() + " [fifo #d]"+fifoBroadcast.getSelfDeliveredNum());
-                    Thread.sleep(500);
-                }
-            }
-        }
+//        for(int m : parser.getMessageConfigList2()){
+//            // m defines how many messages each process should broadcast
+//            for(int i = 0; i < m; i++) {
+//                int pending = fifoBroadcast.getPendingNum();
+//                if(pending < cs451.Constants.FIFO_MSG_THRESHOLD){
+//                    // send messsage normally
+//                    fifoBroadcast.request(myId, fifoBroadcast.getAndIncreaseFIFOSEQ());
+//                }else{
+//                    // don't send
+//                    i--;
+//
+//                    // System.out.println("[urb #d]"+ UniformReliableBroadcast.getInstance().getSelfDeliveredNum() + " [fifo #d]"+fifoBroadcast.getSelfDeliveredNum());
+//                    Thread.sleep(500);
+//                }
+//            }
+//        }
 
         // After a process finishes broadcasting,
         // it waits forever for the delivery of messages.

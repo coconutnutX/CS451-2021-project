@@ -80,4 +80,8 @@ public class Parser {
         return configParser.getMessageConfigList1();
     }
 
+    public List<String[]> getMessageConfigList2() {
+        return configParser.getMessageConfigList2();
+    }
+
 }
