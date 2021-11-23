@@ -1,6 +1,7 @@
 package main.java.cs451.urb;
 
 import main.java.cs451.fifo.FIFOBroadcast;
+import main.java.cs451.lcb.LocalizedCausalBroadcast;
 import main.java.cs451.tool.HostManager;
 import main.java.cs451.pl.PerfectLink;
 import main.java.cs451.pl.PerfectLinkMessage;
@@ -9,7 +10,6 @@ import cs451.Host;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Module:
@@ -37,13 +37,13 @@ public class UniformReliableBroadcast {
 
     private PerfectLink perfectLink;      // base on perfect link
 
-    private Map<Integer, Map<Integer, BitSet>> pending;   // <CreaterId, <SEQ, URBMessage>>
+    private Map<Integer, Map<Integer, URBMessage>> pending;   // <CreaterId, <SEQ, URBMessage>>
     private Map<Integer, Set<Integer>> delivered;         // <CreaterId, <SEQ>>
     private int bitSetSize;
     private int majorityNum;
 
-    private ConcurrentLinkedQueue<URBMessage> buffer;         // messages to send (control speed of sending message generated from current process)
-    private Thread urbMessageBufferSender;                    // thread to send URB messages
+//    private ConcurrentLinkedQueue<URBMessage> buffer;         // messages to send (control speed of sending message generated from current process)
+//    private Thread urbMessageBufferSender;                    // thread to send URB messages
 
     public static UniformReliableBroadcast getInstance(){
         return instance;
@@ -54,7 +54,7 @@ public class UniformReliableBroadcast {
         this.myHost = myHost;
         this.pending = new HashMap<>();
         this.delivered = new HashMap<>();
-        this.buffer = new ConcurrentLinkedQueue<>();
+//        this.buffer = new ConcurrentLinkedQueue<>();
         this.bitSetSize = HostManager.getInstance().getTotalHostNumber();
         this.majorityNum = bitSetSize / 2;
 
@@ -68,31 +68,31 @@ public class UniformReliableBroadcast {
             delivered.put(host.getId(), new ConcurrentHashMap<>().newKeySet());
         }
 
-        if(cs451.Constants.ACTIVATE_URB_BUFFER){
-            // init URB message buffer sender
-            urbMessageBufferSender = new URBMessageBufferSender(buffer);
-            urbMessageBufferSender.start();
-        }
+//        if(cs451.Constants.ACTIVATE_URB_BUFFER){
+//            // init URB message buffer sender
+//            urbMessageBufferSender = new URBMessageBufferSender(buffer);
+//            urbMessageBufferSender.start();
+//        }
     }
 
-    public void bufferedRequest(int createrId, int SEQ){
-        URBMessage urbMessage = new URBMessage(createrId, SEQ);
-        // use sliding window to reduce message flow
-        buffer.add(urbMessage);
-    }
+//    public void bufferedRequest(int createrId, int SEQ){
+//        URBMessage urbMessage = new URBMessage(createrId, SEQ);
+//        // use sliding window to reduce message flow
+//        buffer.add(urbMessage);
+//    }
 
     /**
      * Request: < urb, Broadcast | m >: Broadcasts a message m to all processes.
      */
-    public void request(int createrId, int SEQ){
+    public void request(URBMessage urbMessage){
         // add message to pending, and add ack count
-        Map<Integer, BitSet> currentPending = pending.get(myId);
-        currentPending.putIfAbsent(SEQ, new BitSet());
-        currentPending.get(SEQ).set(myId - 1); // set id-1 bit to 1
+        Map<Integer, URBMessage> currentPending = pending.get(myId);
+        currentPending.putIfAbsent(urbMessage.SEQ, urbMessage);
+        currentPending.get(urbMessage.SEQ).bitSet.set(myId - 1); // set id-1 bit to 1
 
         // log broadcast
         if(cs451.Constants.DEBUG_OUTPUT_URB){
-            String logStr = "b " + SEQ + "\n";
+            String logStr = "b " + urbMessage.SEQ + "\n";
             System.out.print("[urb]  "+logStr);
         }
 
@@ -104,7 +104,7 @@ public class UniformReliableBroadcast {
             }
 
             // increase PSEQ each time, ensure unique PSEQ
-            PerfectLinkMessage perfectLinkMessage = new PerfectLinkMessage(desHost, myId, myHost, SEQ, perfectLink.getAndIncreasePSEQ());
+            PerfectLinkMessage perfectLinkMessage = new PerfectLinkMessage(desHost, myId, myHost, urbMessage.SEQ, perfectLink.getAndIncreasePSEQ(), urbMessage.vectorClockStr);
             perfectLink.request(perfectLinkMessage);
         }
     }
@@ -121,11 +121,11 @@ public class UniformReliableBroadcast {
             return;
         }
 
-        Map<Integer, BitSet> currentPending = pending.get(createrId);
+        Map<Integer, URBMessage> currentPending = pending.get(createrId);
         // not in pending, relay
         if(!currentPending.containsKey(SEQ)){
             // new ack count
-            currentPending.putIfAbsent(SEQ, new BitSet());
+            currentPending.putIfAbsent(SEQ, new URBMessage(perfectLinkMessage.createrId, perfectLinkMessage.SEQ, perfectLinkMessage.vectocClockStr));
 
             // log broadcast
             if(cs451.Constants.DEBUG_OUTPUT_URB_RELAY){
@@ -141,35 +141,37 @@ public class UniformReliableBroadcast {
                 }
 
                 // increase PSEQ each time, ensure unique PSEQ
-                PerfectLinkMessage relayPerfectLinkMessage = new PerfectLinkMessage(desHost, createrId, myHost, SEQ, perfectLink.getAndIncreasePSEQ());
+                PerfectLinkMessage relayPerfectLinkMessage = new PerfectLinkMessage(desHost, createrId, myHost, SEQ, perfectLink.getAndIncreasePSEQ(), perfectLinkMessage.vectocClockStr);
                 perfectLink.request(relayPerfectLinkMessage);
             }
         }
 
+        URBMessage urbMessage = currentPending.get(SEQ);
+
         // add ack count
-        currentPending.get(SEQ).set(perfectLinkMessage.senderId - 1); // set id-1 bit to 1
+        urbMessage.bitSet.set(perfectLinkMessage.senderId - 1); // set id-1 bit to 1
 
         // check if can deliver
-        if(currentPending.get(SEQ).cardinality() > majorityNum){
-            deliver(createrId, SEQ);
+        if(urbMessage.bitSet.cardinality() > majorityNum){
+            deliver(urbMessage);
         }
     }
 
-    public void deliver(int createrId, int SEQ){
+    public void deliver(URBMessage urbMessage){
         // log deliver
         if(cs451.Constants.DEBUG_OUTPUT_URB){
-            String logStr = "d " + createrId + " " + SEQ + "\n";
+            String logStr = "d " + urbMessage.createrId + " " + urbMessage.SEQ + "\n";
             System.out.print("[urb]  "+logStr);
         }
 
         // add to delivered
-        delivered.get(createrId).add(SEQ);
+        delivered.get(urbMessage.createrId).add(urbMessage.SEQ);
 
         // remove from pending
-        pending.get(createrId).remove(SEQ);
+        pending.get(urbMessage.createrId).remove(urbMessage.SEQ);
 
-        // call FIFO indication
-        FIFOBroadcast.getInstance().indication(createrId, SEQ);
+        // call LCB indication
+        LocalizedCausalBroadcast.getInstance().indication(urbMessage);
     }
 
     public int getSelfDeliveredNum(){

@@ -34,7 +34,9 @@ public class Constants {
     public static final boolean DEBUG_OUTPUT_URB_RELAY = false;
     public static final boolean DEBUG_OUTPUT_URB_BUFFER = false;
     public static final boolean DEBUG_OUTPUT_FIFO = false;
+    public static final boolean DEBUG_OUTPUT_LCB= true;
 
     // write log file
-    public static final boolean WRITE_LOG_FIFO = true;
+    public static final boolean WRITE_LOG_FIFO = false;
+    public static final boolean WRITE_LOG_LCB = true;
 }

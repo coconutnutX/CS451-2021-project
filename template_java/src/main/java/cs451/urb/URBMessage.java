@@ -1,23 +1,18 @@
 package main.java.cs451.urb;
 
-import java.util.Set;
+import java.util.BitSet;
 
 public class URBMessage {
-    private int createrId;
-    private int SEQ;
-    private Set<Integer> ackSet; // store sender id of pl message
+    public int createrId;
+    public int SEQ;
+    public String vectorClockStr;    // vector clock for lcb
+    public BitSet bitSet;            // acks in urb
 
-    public URBMessage(int createrId, int SEQ){
+    public URBMessage(int createrId, int SEQ, String vectorClockStr){
         this.createrId = createrId;
         this.SEQ = SEQ;
-    }
-
-    public int getSEQ(){
-        return SEQ;
-    }
-
-    public int getCreaterId(){
-        return createrId;
+        this.vectorClockStr = vectorClockStr;
+        this.bitSet = new BitSet();
     }
 
 }

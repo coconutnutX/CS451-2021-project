@@ -29,7 +29,7 @@ public class FIFOBroadcast {
     private FIFOBroadcast(){};
 
     private int myId;                     // id of current process
-    private cs451.Host myHost;            // host of current process
+    private Host myHost;                  // host of current process
     private int currentFIFOSEQ;           // keep track of FIFOSEQ of this process
 
     private Map<Integer, Set<Integer>> pending;         // <CreaterId, <SEQ>>
@@ -81,11 +81,11 @@ public class FIFOBroadcast {
         }
 
         // call urb request
-        if(Constants.ACTIVATE_URB_BUFFER){
-            uniformReliableBroadcast.bufferedRequest(createrId, SEQ);
-        }else{
-            uniformReliableBroadcast.request(createrId, SEQ);
-        }
+//        if(Constants.ACTIVATE_URB_BUFFER){
+//            uniformReliableBroadcast.bufferedRequest(createrId, SEQ);
+//        }else{
+//            uniformReliableBroadcast.request(createrId, SEQ);
+//        }
 
         // add pending count
         pendingNum.incrementAndGet();

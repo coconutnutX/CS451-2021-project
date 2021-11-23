@@ -23,11 +23,12 @@ public class PerfectLinkMessage {
     public int senderPort;
     public String receiverIp;
     public int receiverPort;
+    public String vectocClockStr;    // for localized causal broadcast
 
     public String message;
 
     // construct from sender
-    public PerfectLinkMessage(Host receiver, int createrId, Host sender, int SEQ, int PSEQ){
+    public PerfectLinkMessage(Host receiver, int createrId, Host sender, int SEQ, int PSEQ, String vevtorClockStr){
         this.isACK = false;
         this.isResend = false;
         this.receiverIp = receiver.getIp();
@@ -37,8 +38,10 @@ public class PerfectLinkMessage {
         this.SEQ = SEQ;
         this.PSEQ = PSEQ;
 
+        this.vectocClockStr = vevtorClockStr;
+
         // concatenate message string
-        this.message = "0 " + createrId + " " + senderId + " " + SEQ + " " + PSEQ;
+        this.message = "0 " + createrId + " " + senderId + " " + SEQ + " " + PSEQ + " " + vevtorClockStr;
     }
 
     // construct from receiver
@@ -59,7 +62,8 @@ public class PerfectLinkMessage {
             this.senderIp = sender.getIp();
             this.senderPort = sender.getPort();
             this.SEQ = Integer.parseInt(splits[3]);
-            this.PSEQ = Integer.parseInt(splits[4].trim()); // have to trim at the end to avoid parsing error
+            this.PSEQ = Integer.parseInt(splits[4]);
+            this.vectocClockStr = splits[5].trim();        // have to trim at the end to avoid parsing error
         }else{
             // when receive ACK
             this.isACK = true;
