@@ -27,6 +27,7 @@ public class Constants {
     public static final int URB_BUFFERED_WINDOW_SIZE = 256;
     public static final boolean ACTIVATE_URB_BUFFER = false;
     public static final int FIFO_MSG_THRESHOLD = 128;
+    public static final int LCB_MSG_THRESHOLD = 128;
 
     // debug output
     public static final boolean DEBUG_OUTPUT_PL = false;
@@ -34,7 +35,8 @@ public class Constants {
     public static final boolean DEBUG_OUTPUT_URB_RELAY = false;
     public static final boolean DEBUG_OUTPUT_URB_BUFFER = false;
     public static final boolean DEBUG_OUTPUT_FIFO = false;
-    public static final boolean DEBUG_OUTPUT_LCB= true;
+    public static final boolean DEBUG_OUTPUT_LCB= false;
+    public static final boolean DEBUG_OUTPUT_LCB_CHECK= false;
 
     // write log file
     public static final boolean WRITE_LOG_FIFO = false;

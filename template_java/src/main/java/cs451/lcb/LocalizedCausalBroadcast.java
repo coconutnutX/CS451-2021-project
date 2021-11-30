@@ -115,7 +115,9 @@ public class LocalizedCausalBroadcast {
                 }
             }
 
-            System.out.print("[lcb]["+vectorClockStr+"]   c " + urbMessage.createrId + " " + urbMessage.SEQ + " "+urbMessage.vectorClockStr+" "+flag+"\n");
+            if(cs451.Constants.DEBUG_OUTPUT_LCB_CHECK){
+                System.out.print("[lcb]["+vectorClockStr+"]   c " + urbMessage.createrId + " " + urbMessage.SEQ + " "+urbMessage.vectorClockStr+" "+flag+"\n");
+            }
 
             if(flag==false){
                 // has dependency
@@ -154,6 +156,11 @@ public class LocalizedCausalBroadcast {
 
         // remove from pending
         pending.get(urbMessage.createrId).remove(urbMessage.SEQ);
+
+        // if is message from current process, decrease pendingNum
+        if(urbMessage.createrId == myId){
+            pendingNum.decrementAndGet();
+        }
     }
 
     private void updateVectorClock(int createrId) {

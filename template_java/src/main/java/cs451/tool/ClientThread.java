@@ -19,9 +19,16 @@ public class ClientThread extends Thread{
     public void run(){
         try {
             for(int i = 0; i < m; i++) {
-                localizedCausalBroadcast.request(myId, localizedCausalBroadcast.getAndIncreaseSEQ());
-                int randomNum = ThreadLocalRandom.current().nextInt(500, 2001);
-                Thread.sleep(randomNum);
+                int pending = localizedCausalBroadcast.getPendingNum();
+                if(pending < cs451.Constants.LCB_MSG_THRESHOLD){
+                    // send messsage normally
+                    localizedCausalBroadcast.request(myId, localizedCausalBroadcast.getAndIncreaseSEQ());
+                }else{
+                    // don't send
+                    i--;
+                    // System.out.println("pending="+pending);
+                    Thread.sleep(500);
+                }
             }
         } catch (InterruptedException e) {
             e.printStackTrace();

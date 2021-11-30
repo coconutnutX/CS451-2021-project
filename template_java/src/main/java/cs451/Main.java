@@ -96,23 +96,6 @@ public class Main {
         ClientThread clientThread = new ClientThread(myId, m);
         clientThread.run();
 
-//        for(int m : parser.getMessageConfigList2()){
-//            // m defines how many messages each process should broadcast
-//            for(int i = 0; i < m; i++) {
-//                int pending = fifoBroadcast.getPendingNum();
-//                if(pending < cs451.Constants.FIFO_MSG_THRESHOLD){
-//                    // send messsage normally
-//                    fifoBroadcast.request(myId, fifoBroadcast.getAndIncreaseFIFOSEQ());
-//                }else{
-//                    // don't send
-//                    i--;
-//
-//                    // System.out.println("[urb #d]"+ UniformReliableBroadcast.getInstance().getSelfDeliveredNum() + " [fifo #d]"+fifoBroadcast.getSelfDeliveredNum());
-//                    Thread.sleep(500);
-//                }
-//            }
-//        }
-
         // After a process finishes broadcasting,
         // it waits forever for the delivery of messages.
         while (true) {
