@@ -10,6 +10,7 @@ import cs451.Host;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Module:
@@ -169,6 +170,14 @@ public class UniformReliableBroadcast {
 
         // remove from pending
         pending.get(urbMessage.createrId).remove(urbMessage.SEQ);
+
+//        // TODO for testing delay
+//        int randomNum = ThreadLocalRandom.current().nextInt(0, 6001);
+//        try {
+//            Thread.sleep(randomNum);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
 
         // call LCB indication
         LocalizedCausalBroadcast.getInstance().indication(urbMessage);

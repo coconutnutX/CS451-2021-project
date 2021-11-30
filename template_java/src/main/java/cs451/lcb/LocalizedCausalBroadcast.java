@@ -98,8 +98,9 @@ public class LocalizedCausalBroadcast {
         checkDeliver(urbMessage.createrId);
     }
 
-    public void checkDeliver(int createrId){
+    public boolean checkDeliver(int createrId){
         ConcurrentHashMap<Integer, URBMessage> currentPending = pending.get(createrId);
+        boolean hasDeilivered = false;
 
         // traverse according to SEQ of this creator
         while(currentPending.containsKey(vectorClock[createrId-1].get()+1)){
@@ -120,11 +121,17 @@ public class LocalizedCausalBroadcast {
                 // has dependency
                 System.out.println("depend on "+i);
                 // check if dependency can be solved
-                checkDeliver(i);
+                if(createrId==myId || checkDeliver(i)==false){
+                    // nothing delivered
+                    break;
+                }
             }else{
                 deliver(urbMessage);
+                hasDeilivered = true;
             }
         }
+
+        return hasDeilivered;
     }
 
     public void deliver(URBMessage urbMessage){
@@ -137,13 +144,16 @@ public class LocalizedCausalBroadcast {
             OutputManager.getInstance().addLogBuffer(logStr);
         }
 
-        // update vector clock
-        updateVectorClock(urbMessage.createrId);
-
         // if has dependency, update dependency vector clock
         if(depend[urbMessage.createrId]){
             updateDependVectorClock(urbMessage.createrId);
         }
+
+        // update vector clock
+        updateVectorClock(urbMessage.createrId);
+
+        // remove from pending
+        pending.get(urbMessage.createrId).remove(urbMessage.SEQ);
     }
 
     private void updateVectorClock(int createrId) {

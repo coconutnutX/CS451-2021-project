@@ -27,6 +27,7 @@ public class OutputManager {
     public void writeLogFile(){
         try {
             BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(outputPath));
+            System.out.println(logBuffer.toString());
             bufferedWriter.write(logBuffer.toString());
             bufferedWriter.close();
             System.out.println("Write output done.");
