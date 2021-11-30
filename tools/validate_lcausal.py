@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import argparse
 
 config_path = './output/config'
@@ -51,8 +49,10 @@ def checkProcessId(id, dset):
             sequence = getDependentList(id, dset)
             # number should be less of equal
             if len(sequence)!=len(ref_sequence):
-                print('Number not match!')
+                print('Number exceeds!')
                 return False
+            # trim ref sequence according to the number of sequence
+            ref_sequence_cut = ref_sequence[:len(sequence)]
             # output should be the same with ref_sequence
             for a,b in zip(sequence, ref_sequence):
                 if a!=b:
