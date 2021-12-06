@@ -32,31 +32,82 @@ def getDependentList(id, dset):
         if splited[0] == "d": # only consider diliver
             if int(splited[1]) in dset: # only consider sender in depent set
                 sequence.append(line)
-    print('#d msg of',str(id),':',len(sequence))
+    print(str(id),'#msg:',len(sequence))
     return sequence
 
+# find all 'b seq' and relevent delivered message in output_id, where sender is in depent set
+def getDependentListOfCreator(id, dset):
+    cur_output_path = output_path+str(id)+'.output'
+    f = open(cur_output_path,"r")
+    data = f.readlines()
+    
+    sequence = []
+    for line in data:
+        splited = line.split(" ")
+        if splited[0] == "b":
+            sequence.append(line)
+        else:
+            if int(splited[1]) in dset:
+                sequence.append(line)
+    print(str(id),'#msg:',len(sequence))
+    return sequence
+    
+# get vector clock associated with each message created by id from sequence
+def getVectorClock(sequence, id, proc_num):
+    clock = []
+    msg_clock_list = []
+    for i in range(proc_num+1):
+        clock.append(0)
+    for msg in sequence:
+        splited = msg.split(" ")
+        sender = int(splited[1])
+        clock[sender]+=1
+        if sender==id:
+            msg_clock_list.append(clock.copy())
+    return msg_clock_list
+
+# get vector clock associated with each message broadcasted by id from sequence
+def getVectorClockOfCreator(sequence, id, proc_num):
+    clock = []
+    msg_clock_list = []
+    for i in range(proc_num+1):
+        clock.append(0)
+    for msg in sequence:
+        splited = msg.split(" ")
+        sender = int(splited[1])
+        if splited[0]=='d':
+            clock[sender]+=1
+        else:
+            msg_clock_list.append(clock.copy())
+    return msg_clock_list
+    
 # check if dependency of id is satisfied in all other process
 def checkProcessId(id, dset):
     print('checing process', str(id), ',depend on', dset)
     
     # sequence of currrent process
-    ref_sequence = getDependentList(id, dset)
+    ref_sequence = getDependentListOfCreator(id, dset)
+    ref_clock = getVectorClockOfCreator(ref_sequence, id, proc_num)
+    print(id,'#clock:',len(ref_clock))
     
     for i in range(proc_num):
         cur_id = i+1
         if cur_id != id:
             # sequence of other process
-            sequence = getDependentList(id, dset)
+            sequence = getDependentList(cur_id, dset)
+            # get vector clock
+            clock = getVectorClock(sequence, id, proc_num)
+            print(cur_id,'#clock:',len(clock))
             # number should be less of equal
-            if len(sequence)!=len(ref_sequence):
+            if len(clock)>len(ref_clock):
                 print('Number exceeds!')
                 return False
-            # trim ref sequence according to the number of sequence
-            ref_sequence_cut = ref_sequence[:len(sequence)]
             # output should be the same with ref_sequence
-            for a,b in zip(sequence, ref_sequence):
-                if a!=b:
-                    print('Message not match!')
+            for i in range(len(clock)):
+                if ref_clock[i] > clock[i]:
+                    print('Clock not match!')
+                    print('ref_clock:',ref_clock[i])
+                    print('clock    :',clock[i])
                     return False
     return True
 
