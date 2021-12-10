@@ -1,6 +1,7 @@
 package main.java.cs451.tool;
 
 import main.java.cs451.lcb.LocalizedCausalBroadcast;
+import main.java.cs451.urb.UniformReliableBroadcast;
 
 import java.util.concurrent.ThreadLocalRandom;
 

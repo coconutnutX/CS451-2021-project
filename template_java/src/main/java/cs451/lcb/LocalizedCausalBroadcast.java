@@ -9,8 +9,6 @@ import cs451.Host;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class LocalizedCausalBroadcast {
 
@@ -38,6 +36,8 @@ public class LocalizedCausalBroadcast {
 
     private AtomicInteger pendingNum;
 
+    private Thread checkDeliverThread;    // thread to listen to sockets
+
     public void init(int myId, Host myHost, boolean[] depend){
         this.myId = myId;
         this.myHost = myHost;
@@ -58,6 +58,10 @@ public class LocalizedCausalBroadcast {
         // init UniformReliableBroadcast (Singleton)
         uniformReliableBroadcast = UniformReliableBroadcast.getInstance();
         uniformReliableBroadcast.init(myId, myHost);
+
+        // init check deliver thread
+//        this.checkDeliverThread = new CheckLegacyDeliverThread();
+//        checkDeliverThread.start();
 
         // init pending map
         for(Host host: HostManager.getInstance().getAllHosts()){
@@ -137,30 +141,30 @@ public class LocalizedCausalBroadcast {
     }
 
     public void deliver(URBMessage urbMessage){
-        String logStr = "d " + urbMessage.createrId + " " + urbMessage.SEQ + "\n";
+        // only deliver when remove from pending succeed, prevent concurrent access
+        if(pending.get(urbMessage.createrId).remove(urbMessage.SEQ) != null){
+            String logStr = "d " + urbMessage.createrId + " " + urbMessage.SEQ + "\n";
 
-        // if has dependency, update dependency vector clock
-        if(depend[urbMessage.createrId]){
-            updateDependVectorClock(urbMessage.createrId);
-        }
+            // if has dependency, update dependency vector clock
+            if(depend[urbMessage.createrId]){
+                updateDependVectorClock(urbMessage.createrId);
+            }
 
-        // update vector clock
-        updateVectorClock(urbMessage.createrId);
+            // update vector clock
+            updateVectorClock(urbMessage.createrId);
 
-        // remove from pending
-        pending.get(urbMessage.createrId).remove(urbMessage.SEQ);
+            // log broadcast
+            if(cs451.Constants.DEBUG_OUTPUT_LCB){
+                System.out.print("[lcb]["+vectorClockStr+"]   d " + urbMessage.createrId + " " + urbMessage.SEQ + " "+urbMessage.vectorClockStr+"\n");
+            }
+            if(cs451.Constants.WRITE_LOG_LCB){
+                OutputManager.getInstance().addLogBuffer(logStr);
+            }
 
-        // log broadcast
-        if(cs451.Constants.DEBUG_OUTPUT_LCB){
-            System.out.print("[lcb]["+vectorClockStr+"]   d " + urbMessage.createrId + " " + urbMessage.SEQ + " "+urbMessage.vectorClockStr+"\n");
-        }
-        if(cs451.Constants.WRITE_LOG_LCB){
-            OutputManager.getInstance().addLogBuffer(logStr);
-        }
-
-        // if is message from current process, decrease pendingNum
-        if(urbMessage.createrId == myId){
-            pendingNum.decrementAndGet();
+            // if is message from current process, decrease pendingNum
+            if(urbMessage.createrId == myId){
+                pendingNum.decrementAndGet();
+            }
         }
     }
 
