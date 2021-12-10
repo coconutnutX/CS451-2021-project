@@ -7,6 +7,7 @@ import main.java.cs451.tool.HostManager;
 import main.java.cs451.tool.OutputManager;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 public class Main {
@@ -79,17 +80,30 @@ public class Main {
         System.out.println("Messages to broadcast: "+m);
 
         // parse dependency config
-        String[] dependencyConfig = configs.get(myId);
-        boolean[] depend = new boolean[hostManager.getTotalHostNumber()+1];
-        for(int i=1; i<dependencyConfig.length; i++){
-            int id = Integer.parseInt(dependencyConfig[i]);
-            depend[id] = true;
+        int totalHost = hostManager.getTotalHostNumber();
+//        boolean[] depend = new boolean[totalHost+1];
+//        for(int i=1; i<dependencyConfig.length; i++){
+//            int id = Integer.parseInt(dependencyConfig[i]);
+//            depend[id] = true;
+//        }
+
+        // parse all dependency
+        HashMap<Integer, boolean[]> hostDependency = new HashMap<>();
+        for(int i=1; i<= totalHost; i++){
+            boolean[] depend = new boolean[totalHost+1];
+            hostDependency.put(i, depend);
+
+            String[] dependencyConfig = configs.get(i);
+            for(int j=1; j<dependencyConfig.length; j++){
+                int id = Integer.parseInt(dependencyConfig[j]);
+                depend[id] = true;
+            }
+            System.out.println("Dependency of "+i+": "+ Arrays.toString(depend));
         }
-        System.out.println("Dependency of "+myId+": "+ Arrays.toString(depend));
 
         // init LocalizedCausalBroadcast (Singleton)
         LocalizedCausalBroadcast localizedCausalBroadcast = LocalizedCausalBroadcast.getInstance();
-        localizedCausalBroadcast.init(myId, myHost, depend);
+        localizedCausalBroadcast.init(myId, myHost, hostDependency.get(myId), hostDependency);
 
         System.out.println("Broadcasting and delivering messages...\n");
 

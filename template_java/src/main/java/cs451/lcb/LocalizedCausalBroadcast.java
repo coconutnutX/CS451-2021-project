@@ -25,6 +25,7 @@ public class LocalizedCausalBroadcast {
     private int totalHost;
 
     private boolean[] depend;             // depend[i] == true -> current process depend on i
+    private HashMap<Integer, boolean[]> hostDependency;   // all host dependency
 
     private AtomicInteger[] vectorClock;            // delivered message vector clock
     private AtomicInteger[] dependVectorClock;      // dependency associated with broadcast message
@@ -38,10 +39,11 @@ public class LocalizedCausalBroadcast {
 
     private Thread checkDeliverThread;    // thread to listen to sockets
 
-    public void init(int myId, Host myHost, boolean[] depend){
+    public void init(int myId, Host myHost, boolean[] depend, HashMap<Integer, boolean[]> hostDependency){
         this.myId = myId;
         this.myHost = myHost;
         this.depend = depend;
+        this.hostDependency = hostDependency;
         this.currentSEQ = 1;
         this.totalHost = HostManager.getInstance().getTotalHostNumber();
         this.pending = new ConcurrentHashMap<>();
@@ -105,6 +107,7 @@ public class LocalizedCausalBroadcast {
     public boolean checkDeliver(int createrId){
         ConcurrentHashMap<Integer, URBMessage> currentPending = pending.get(createrId);
         boolean hasDeilivered = false;
+        boolean[] curDepend = hostDependency.get(createrId);
 
         // traverse according to SEQ of this creator
         while(currentPending.containsKey(vectorClock[createrId-1].get()+1)){
@@ -113,9 +116,12 @@ public class LocalizedCausalBroadcast {
             int i;
             boolean flag = true;
             for(i=1; i<=totalHost; i++){
-                if(vectorClock[i-1].get() < urbMessage.vectorClock[i-1]){
-                    flag = false;
-                    break;
+                // only check when creator depend on i, reduce atomic operations
+                if(curDepend[i]){
+                    if(vectorClock[i-1].get() < urbMessage.vectorClock[i-1]){
+                        flag = false;
+                        break;
+                    }
                 }
             }
 
