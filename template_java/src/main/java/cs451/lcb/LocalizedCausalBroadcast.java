@@ -60,8 +60,8 @@ public class LocalizedCausalBroadcast {
         uniformReliableBroadcast.init(myId, myHost);
 
         // init check deliver thread
-//        this.checkDeliverThread = new CheckLegacyDeliverThread();
-//        checkDeliverThread.start();
+        this.checkDeliverThread = new CheckLegacyDeliverThread();
+        checkDeliverThread.start();
 
         // init pending map
         for(Host host: HostManager.getInstance().getAllHosts()){

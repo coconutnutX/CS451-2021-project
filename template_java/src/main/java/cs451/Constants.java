@@ -27,7 +27,10 @@ public class Constants {
     public static final int URB_BUFFERED_WINDOW_SIZE = 256;
     public static final boolean ACTIVATE_URB_BUFFER = false;
     public static final int FIFO_MSG_THRESHOLD = 128;
+
+    // lcb
     public static final int LCB_MSG_THRESHOLD = 128;
+    public static final int LCB_CHECK_PERIOD = 60 * 1000;
 
     // debug output
     public static final boolean DEBUG_OUTPUT_PL = false;
