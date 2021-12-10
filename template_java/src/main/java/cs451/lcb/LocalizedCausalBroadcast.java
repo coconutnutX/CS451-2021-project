@@ -117,11 +117,9 @@ public class LocalizedCausalBroadcast {
             boolean flag = true;
             for(i=1; i<=totalHost; i++){
                 // only check when creator depend on i, reduce atomic operations
-                if(curDepend[i]){
-                    if(vectorClock[i-1].get() < urbMessage.vectorClock[i-1]){
-                        flag = false;
-                        break;
-                    }
+                if(curDepend[i] && vectorClock[i-1].get() < urbMessage.vectorClock[i-1]){
+                    flag = false;
+                    break;
                 }
             }
 
