@@ -16,16 +16,12 @@ public class CheckLegacyDeliverThread extends Thread{
             LocalizedCausalBroadcast localizedCausalBroadcast = LocalizedCausalBroadcast.getInstance();
             int totalHost = HostManager.getInstance().getTotalHostNumber();
             while(true){
-                boolean flag = false;
-                for(int i=1; i<=totalHost; i++){
-                    if(localizedCausalBroadcast.checkDeliver(i)){
-                        flag = true;
-                    }
-                }
-                System.out.println("check deliver, "+flag);
-
                 // sleep
                 Thread.sleep( cs451.Constants.LCB_CHECK_PERIOD);
+
+                for(int i=1; i<=totalHost; i++){
+                    localizedCausalBroadcast.checkDeliver(i);
+                }
             }
         } catch (InterruptedException e) {
             e.printStackTrace();

@@ -59,14 +59,14 @@ public class LocalizedCausalBroadcast {
         uniformReliableBroadcast = UniformReliableBroadcast.getInstance();
         uniformReliableBroadcast.init(myId, myHost);
 
-        // init check deliver thread
-        this.checkDeliverThread = new CheckLegacyDeliverThread();
-        checkDeliverThread.start();
-
         // init pending map
         for(Host host: HostManager.getInstance().getAllHosts()){
             pending.put(host.getId(), new ConcurrentHashMap<>());
         }
+
+        // init check deliver thread
+        this.checkDeliverThread = new CheckLegacyDeliverThread();
+        checkDeliverThread.start();
     }
 
     /**
@@ -125,7 +125,9 @@ public class LocalizedCausalBroadcast {
 
             if(flag==false){
                 // has dependency
-                System.out.println("depend on "+i);
+                if(cs451.Constants.DEBUG_OUTPUT_LCB_CHECK) {
+                    System.out.println("depend on " + i);
+                }
                 // check if dependency can be solved
                 if(createrId==myId || checkDeliver(i)==false){
                     // nothing delivered
