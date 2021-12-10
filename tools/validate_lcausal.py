@@ -83,7 +83,7 @@ def getVectorClockOfCreator(sequence, id, proc_num):
     
 # check if dependency of id is satisfied in all other process
 def checkProcessId(id, dset):
-    print('checing process', str(id), ',depend on', dset)
+    print('checking process', str(id), ',depend on', dset)
     
     # sequence of currrent process
     ref_sequence = getDependentListOfCreator(id, dset)

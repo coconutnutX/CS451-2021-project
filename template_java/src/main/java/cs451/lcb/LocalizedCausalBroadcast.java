@@ -150,9 +150,6 @@ public class LocalizedCausalBroadcast {
                 updateDependVectorClock(urbMessage.createrId);
             }
 
-            // update vector clock
-            updateVectorClock(urbMessage.createrId);
-
             // log broadcast
             if(cs451.Constants.DEBUG_OUTPUT_LCB){
                 System.out.print("[lcb]["+vectorClockStr+"]   d " + urbMessage.createrId + " " + urbMessage.SEQ + " "+urbMessage.vectorClockStr+"\n");
@@ -160,6 +157,9 @@ public class LocalizedCausalBroadcast {
             if(cs451.Constants.WRITE_LOG_LCB){
                 OutputManager.getInstance().addLogBuffer(logStr);
             }
+
+            // update vector clock
+            updateVectorClock(urbMessage.createrId);
 
             // if is message from current process, decrease pendingNum
             if(urbMessage.createrId == myId){
