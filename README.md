@@ -1,3 +1,5 @@
+This is a personal project repository for CS-451 Distributed Algorithms
+
 The goal of this practical project is to implement certain building blocks necessary for a decentralized system. 
 
 Specifically, implement Perfect Links, Uniform Reliable Broadcast, FIFO Broadcast and Localized Causal Broadcast based on UDP Socket.
