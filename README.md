@@ -4,6 +4,12 @@ The goal of this practical project is to implement certain building blocks neces
 
 Specifically, implement Perfect Links, Uniform Reliable Broadcast, FIFO Broadcast and Localized Causal Broadcast based on UDP Socket.
 
+---
+
+FIFO Broadcast activity graph:
+
+![activity graph](img.jpeg)
+
 Original project description: [README](./README_original.md)
 
 My project summary: [DA project 总结](https://coconutnutx.github.io/2021/12/01/project-review/)
